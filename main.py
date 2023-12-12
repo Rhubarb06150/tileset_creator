@@ -4,6 +4,7 @@ from tkinter import messagebox, filedialog, ttk, colorchooser
 from tkinter.colorchooser import askcolor
 import PIL
 from PIL import Image
+import os
 
 liste_images=[]
 def upload():
@@ -13,12 +14,51 @@ def upload():
     fichier.configure(text=('Fichier: '+str(filename)))
     for i in filename:
         liste_images.append(i)
+    aff_size()
 
 bg_color='#ffffff'
 def change_color():
     global bg_color
     colors = askcolor(title="Choix de la couleur de fond")
     bg_color=(colors[1])
+
+def aff_size():
+
+    global smb3
+    global sens
+    global upscale
+
+    hauteur=0
+    largeur=0
+    try:
+        if sens.get()=='Vertical':
+            for i in range(len(liste_images)):
+                with Image.open(liste_images[i]) as ima:
+                    w, h = ima.size
+                    ima_w=int(w)
+                    hauteur+=h
+                    if ima_w >= largeur:
+                        largeur=ima_w
+        if smb3.get()==1:
+            hauteur=hauteur*2
+        if upscale.get()=='x2':
+            hauteur,largeur=hauteur*2,largeur*2
+        elif upscale.get()=='x4':
+            hauteur,largeur=hauteur*4,largeur*4
+        elif upscale.get()=='x8':
+            hauteur,largeur=hauteur*8,largeur*8
+        elif upscale.get()=='x16':
+            hauteur,largeur=hauteur*16,largeur*16
+        elif upscale.get()=='x32':
+            hauteur,largeur=hauteur*32,largeur*32
+        elif upscale.get()=='x64':
+            hauteur,largeur=hauteur*64,largeur*64
+        hauteur_.configure(text=('Height: '+str(hauteur)+'px'))
+        largeur_.configure(text=('Width: '+str(largeur)+'px'))
+    except:
+        hauteur_.configure(text=('Height: NONE'))
+        largeur_.configure(text=('Width: NONE'))
+
 
 def create():
     global bg_color
@@ -101,21 +141,44 @@ def create():
                 img=img.resize((w*32*a,h*32),Image.NEAREST)
             if upscale.get()=='x64':
                 img=img.resize((w*64*a,h*64),Image.NEAREST)
-
         try:
             if folder_selected != '':
-                img.save(folder_selected+'/'+str(filename.get())+format.get())
-                msg=messagebox.showinfo(title='Succes!',message=("Your tileset has been created\n as "+str(filename.get())+format.get()))
+                if os.path.exists(folder_selected+'/'+str(filename.get())+format.get()):
+                    ask=messagebox.askyesno(title='Tileset already exist!',message=('An file named '+filename.get()+format.get()+' already exists, do you want to replace it?'))
+                    if ask:
+                        img.save(folder_selected+'/'+str(filename.get())+format.get())
+                        msg=messagebox.showinfo(title='Succes!',message=("Your tileset has been created\n as "+filename.get()+format.get()))
+                else:
+                    img.save(folder_selected+'/'+str(filename.get())+format.get())
+                    msg=messagebox.showinfo(title='Succes!',message=("Your tileset has been created\n as "+filename.get()+format.get()))
             else:
-                img.save('tilesets/'+str(filename.get())+format.get())
-                msg=messagebox.showinfo(title='Succes!',message=("Your tileset has been created\n as "+str(filename.get())+format.get()))
+                if os.path.exists('tilesets/'+str(filename.get())+format.get()):
+                    ask=messagebox.askyesno(title='Tileset already exist!',message=('An file named '+filename.get()+format.get()+' already exists, do you want to replace it?'))
+                    if ask:
+                        img.save('tilesets/'+str(filename.get())+format.get())
+                        msg=messagebox.showinfo(title='Succes!',message=("Your tileset has been created\n as "+str(filename.get())+format.get()))
+                else:
+                    img.save('tilesets/'+str(filename.get())+format.get())
+                    msg=messagebox.showinfo(title='Succes!',message=("Your tileset has been created\n as "+str(filename.get())+format.get()))
         except:
             if folder_selected != '':
-                img.save(folder_selected+'/tileset'+format.get())
-                msg=messagebox.showinfo(title='Hey',message="The filename was empty or contained illegal characters\nso your sheet were named 'tileset"+format.get()+"'")
+                if os.path.exists(folder_selected+'/tileset'+format.get()):
+                    ask=messagebox.askyesno(title='Tileset already exist!',message=('An file named tileset'+format.get()+' already exists, do you want to replace it?'))
+                    if ask:
+                        img.save(folder_selected+'/tileset'+format.get())
+                        msg=messagebox.showinfo(title='Hey',message="The filename was empty or contained illegal characters\nso your sheet were named 'tileset"+format.get()+"'")
+                else:
+                    img.save(folder_selected+'/tileset'+format.get())
+                    msg=messagebox.showinfo(title='Hey',message="The filename was empty or contained illegal characters\nso your sheet were named 'tileset"+format.get()+"'")
             else:
-                img.save('tilesets/tileset'+format.get())
-                msg=messagebox.showinfo(title='Hey',message="The filename was empty or contained illegal characters\nso your sheet were named 'tileset"+format.get()+"'")
+                if os.path.exists('tilesets/tileset'+format.get()):
+                    ask=messagebox.askyesno(title='Tileset already exist!',message=('An file named tileset'+format.get()+' already exists, do you want to replace it?'))
+                    if ask:
+                        img.save('tilesets/tileset'+format.get())
+                        msg=messagebox.showinfo(title='Hey',message="The filename was empty or contained illegal characters\nso your sheet were named 'tileset"+format.get()+"'")
+                else:
+                    img.save('tilesets/tileset'+format.get())
+                    msg=messagebox.showinfo(title='Hey',message="The filename was empty or contained illegal characters\nso your sheet were named 'tileset"+format.get()+"'")
     except:
         msg=messagebox.showerror(title='Error',message="An error as occured! \n\n(please verify that you've been\nupload your images.)")
 
@@ -124,6 +187,7 @@ def verif_size():
         avert.configure(text="Warning! too big upscale could lead to a crash,\n don't use big upscale if your computer can't handle it!")
     else:
         avert.configure(text="")
+    aff_size()
 
 folder_selected=''
 def choose_path():
@@ -155,7 +219,7 @@ button = tk.Button(root, text='Upload images', command=upload,borderwidth=1)
 button.place(x=2,y=42)
 
 smb3=IntVar()
-smb3_=Checkbutton(text='SMB3 Style',variable=smb3,onvalue=1,offvalue=0)
+smb3_=tk.Checkbutton(root,text='SMB3 Style',variable=smb3,onvalue=1,offvalue=0,command=aff_size)
 smb3_.place(x=77,y=70)
 
 liste_sens=['Vertical','Horizontal']
@@ -177,9 +241,15 @@ color=Button(text='Bakcground color',command=change_color,borderwidth=1)
 color.place(x=2,y=122)
 
 transparent=IntVar()
-
 transparent_=Checkbutton(text='Transparent background',onvalue=1,offvalue=0,variable=transparent)
 transparent_.place(x=105,y=123)
+
+ts_size=Label(text='Tileset size:')
+ts_size.place(x=2,y=200)
+hauteur_=Label(text='Height:')
+hauteur_.place(x=20,y=230)
+largeur_=Label(text='Width:')
+largeur_.place(x=20,y=248)
 
 filename_=Label(text='Name of file: ')
 filename_.place(x=2,y=100)
@@ -196,12 +266,6 @@ format.bind("<<ComboboxSelected>>", lambda event:format_f())
 liste_fs=[]
 for i in range(100):
     liste_fs.append(str(i))
-
-frame_skip=ttk.Combobox(values=liste_fs,state='readonly',width=3)
-frame_skip.place(x=125,y=160)
-frame_skip.set('0')
-frame_skip_=Label(text='Frame skip:')
-frame_skip_.place(x=55,y=160)
 
 path=Button(text='Choose output folder',command=choose_path)
 path.place(x=2,y=450)
