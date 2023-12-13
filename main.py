@@ -5,6 +5,8 @@ from tkinter.colorchooser import askcolor
 import PIL
 from PIL import Image,ImageTk
 import os
+import webbrowser
+
 liste_images=[]
 liste_images_rip=[]
 
@@ -454,10 +456,12 @@ path_=Button(text='Choose output folder',command=choose_path,borderwidth=1)
 path_.place(x=558,y=2)
 path__=Button(text='Open output folder',command=open_path,borderwidth=1)
 path__.place(x=569,y=28)
-bug_report=Button(text='Report a bug',borderwidth=1)
+bug_report=Button(text='Report a bug',borderwidth=1,command=lambda:webbrowser.open('https://github.com/Rhubarb06150/tileset_editor/discussions/2'))
 bug_report.place(x=603,y=54)
-idea_=Button(text='Suggest idea',borderwidth=1)
+idea_=Button(text='Suggest idea',borderwidth=1,command=lambda:webbrowser.open('https://github.com/Rhubarb06150/tileset_editor/discussions/4'))
 idea_.place(x=604,y=80)
+help_=Button(text='Need help?',borderwidth=1,command=lambda:webbrowser.open('https://github.com/Rhubarb06150/tileset_editor/discussions/categories/help'))
+help_.place(x=612,y=106)
 
 #RIP PART
 title_=Label(text='______________________ Tileset ripping ________________________')
