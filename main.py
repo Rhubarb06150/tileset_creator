@@ -244,6 +244,7 @@ def rip(ty):
                     print('derniere ligne')
                     for i in range(column):
                         img2=img.crop((x,y,x+t_s,y+t_s))
+                        img2=img2.resize(((t_s*(int(_upscale.get().replace('x','')))),(t_s*(int(_upscale.get().replace('x',''))))),Image.NEAREST)
                         img2.save('tilesets/tiles/'+str(tile_name.get())+str(a+1)+'.png')
                         x+=t_s+t_o
                         a+=1
@@ -252,6 +253,7 @@ def rip(ty):
                     column+=1
                 print(column)
                 img2=img.crop((x,y,(x+t_s),(y+t_s)))
+                img2=img2.resize(((t_s*(int(_upscale.get().replace('x','')))),(t_s*(int(_upscale.get().replace('x',''))))),Image.NEAREST)
                 img2.save('tilesets/tiles/'+str(tile_name.get())+str(a+1)+'.png')
                 x+=t_s+t_o
                 a+=1
@@ -420,11 +422,11 @@ y_tile_offset_.place(x=110,y=350)
 y_tile_offset.place(x=194,y=350)
 
 tile_name_=Label(text='Tiles name:')
-tile_name_.place(x=2,y=378)
+tile_name_.place(x=2,y=372)
 tile_name=Entry(justify='right',width=10)
-tile_name.place(x=70,y=378)
+tile_name.place(x=70,y=372)
 tile_name_f=Label(text='.png')
-tile_name_f.place(x=134,y=378)
+tile_name_f.place(x=134,y=372)
 
 x_tile=ttk.Combobox(values=dim_tile,width=3,state='readonly')
 y_tile=ttk.Combobox(values=dim_tile,width=3,state='readonly')
@@ -455,6 +457,12 @@ x_tile.bind("<<ComboboxSelected>>", lambda event:rip('show_f'))
 y_tile.bind("<<ComboboxSelected>>", lambda event:rip('show_f'))
 tile_offset.bind("<<ComboboxSelected>>", lambda event:rip('show_f'))
 tile_size.bind("<<ComboboxSelected>>", lambda event:rip('show_f'))
+
+_upscale=ttk.Combobox(values=liste_upscale,width=3,state='readonly')
+_upscale.place(x=52,y=394)
+_upscale.set('x1')
+_upscale_=Label(text='Upscale:')
+_upscale_.place(x=2,y=394)
 
 final=Button(command=create,borderwidth=1,text='Create')
 final.place(x=10,y=160)
