@@ -13,7 +13,8 @@ def upload():
     global liste_images
     liste_images=[]
     filename = filedialog.askopenfilenames()
-    fichier.configure(text=('Files: '+str(filename)))
+    if filename!='':
+        fichier.configure(text=('Files: '+str(filename)))
     for i in filename:
         liste_images.append(i)
     aff_size()
@@ -22,7 +23,8 @@ def upload_rip():
     global liste_images_rip
     liste_images_rip=[]
     filename = filedialog.askopenfilename()
-    files_.configure(text=('File: '+str(filename)))
+    if filename!='':
+        files_.configure(text=('File: '+str(filename)))
     liste_images_rip.append(filename)
 
 bg_color='#ffffff'
@@ -231,6 +233,11 @@ def rip(ty):
             y=y_o
             column=0
             fin=False
+
+            empty = Image.new('RGBA', (t_s,t_s), (0,0,0,0))
+            empty=empty.resize(((t_s*(int(_upscale.get().replace('x','')))),(t_s*(int(_upscale.get().replace('x',''))))),Image.NEAREST)
+            empty.save('tilesets/tiles/empty.png')
+
             while True:
                 if (x+t_s)<=h:
                     img2=img.crop((x,y,(x+t_s),(y+t_s)))
@@ -241,26 +248,29 @@ def rip(ty):
                 if (y+t_s)>=w:
                     y=w-t_s+y_o
                     x=x_o
-                    print('derniere ligne')
                     for i in range(column):
                         img2=img.crop((x,y,x+t_s,y+t_s))
                         img2=img2.resize(((t_s*(int(_upscale.get().replace('x','')))),(t_s*(int(_upscale.get().replace('x',''))))),Image.NEAREST)
                         img2.save('tilesets/tiles/'+str(tile_name.get())+str(a+1)+'.png')
+                        if open("tilesets/tiles/"+str(tile_name.get())+str(a+1)+".png","rb").read() == open("tilesets/tiles/empty.png","rb").read():
+                            os.remove("tilesets/tiles/"+str(tile_name.get())+str(a+1)+".png")
                         x+=t_s+t_o
                         a+=1
                     break
                 if not fin:
                     column+=1
-                print(column)
                 img2=img.crop((x,y,(x+t_s),(y+t_s)))
                 img2=img2.resize(((t_s*(int(_upscale.get().replace('x','')))),(t_s*(int(_upscale.get().replace('x',''))))),Image.NEAREST)
                 img2.save('tilesets/tiles/'+str(tile_name.get())+str(a+1)+'.png')
+                if open("tilesets/tiles/"+str(tile_name.get())+str(a+1)+".png","rb").read() == open("tilesets/tiles/empty.png","rb").read():
+                    os.remove("tilesets/tiles/"+str(tile_name.get())+str(a+1)+".png")
                 x+=t_s+t_o
                 a+=1
                 if (a+1)%200 == 0:
                     msg=messagebox.askyesno(title='Warning!',message=(str(a+1)+' tiles were generated, \ndo you want to continue?'))
                     if not msg:
                         break
+            os.remove("tilesets/tiles/empty.png")
     
         elif ty=='show_f':
             if preview_e.get()==1:
@@ -464,7 +474,7 @@ _upscale.set('x1')
 _upscale_=Label(text='Upscale:')
 _upscale_.place(x=2,y=394)
 
-final=Button(command=create,borderwidth=1,text='Create')
-final.place(x=10,y=160)
+final=Button(command=create,borderwidth=1,text='Create spritesheet')
+final.place(x=50,y=170)
 
 root.mainloop()
