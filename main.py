@@ -5,7 +5,6 @@ from tkinter.colorchooser import askcolor
 import PIL
 from PIL import Image,ImageTk
 import os
-import cv2
 liste_images=[]
 liste_images_rip=[]
 
@@ -26,6 +25,9 @@ def upload_rip():
     if filename!='':
         files_.configure(text=('File: '+str(filename)))
     liste_images_rip.append(filename)
+    x_tile.set('0')
+    y_tile.set('0')
+    rip('show_f')
 
 bg_color='#ffffff'
 def change_color():
@@ -82,6 +84,7 @@ def aff_size():
 
 
 def create():
+
     global bg_color
     global smb3
     global upscale
@@ -205,38 +208,38 @@ def create():
 
 def rip(ty):
     try:
-        img=Image.open(liste_images_rip[0])
-
-        hauteur=0
-        largeur=0
-
-        h, w=img.size
-        img2=img.crop((16,16,32,32))
-
-        x=0
-        y=0
-
-        t_o=0
-        t_s=0
-
-        t_o=int(((tile_offset.get()).replace('x','')).replace('p',''))
-
-        x_o=int(((x_tile_offset.get()).replace('x','')).replace('p',''))
-
-        y_o=int(((y_tile_offset.get()).replace('x','')).replace('p',''))
-
-        t_s=int(((tile_size.get()).replace('x','')).replace('p',''))
 
         if ty=='rip':
+            img=Image.open(liste_images_rip[0])
+
+            hauteur=0
+            largeur=0
+            h, w=img.size
+            img2=img.crop((16,16,32,32))
+
+            x=0
+            y=0
+            t_o=0
+            t_s=0
+
+            t_o=int(((tile_offset.get()).replace('x','')).replace('p',''))
+            x_o=int(((x_tile_offset.get()).replace('x','')).replace('p',''))
+            y_o=int(((y_tile_offset.get()).replace('x','')).replace('p',''))
+            t_s=int(((tile_size.get()).replace('x','')).replace('p',''))
             a=0
             x=x_o
             y=y_o
             column=0
+            if columns.get()!='All':
+                max_col=int(columns.get())
+            else:
+                max_col=1000
             fin=False
 
-            empty = Image.new('RGBA', (t_s,t_s), (0,0,0,0))
-            empty=empty.resize(((t_s*(int(_upscale.get().replace('x','')))),(t_s*(int(_upscale.get().replace('x',''))))),Image.NEAREST)
-            empty.save('tilesets/tiles/empty.png')
+            cur_col=0
+
+            if tile_name.get()=='':
+                tile_name.insert(0,'tile-')
 
             while True:
                 if (x+t_s)<=h:
@@ -245,35 +248,82 @@ def rip(ty):
                     fin=True
                     y+=t_s+t_o
                     x=x_o
+                    cur_col=0
                 if (y+t_s)>=w:
+                    cur_col=0
                     y=w-t_s+y_o
                     x=x_o
-                    for i in range(column):
+                    for i in range(100):
                         img2=img.crop((x,y,x+t_s,y+t_s))
                         img2=img2.resize(((t_s*(int(_upscale.get().replace('x','')))),(t_s*(int(_upscale.get().replace('x',''))))),Image.NEAREST)
-                        img2.save('tilesets/tiles/'+str(tile_name.get())+str(a+1)+'.png')
-                        if open("tilesets/tiles/"+str(tile_name.get())+str(a+1)+".png","rb").read() == open("tilesets/tiles/empty.png","rb").read():
-                            os.remove("tilesets/tiles/"+str(tile_name.get())+str(a+1)+".png")
+                        if folder_selected=='':
+                            img2.save('tilesets/tiles/'+str(tile_name.get())+str(a+1)+'.png')
+                            extrema = img2.convert("P").getextrema()
+                            if extrema == ((255,255)):
+                                os.remove('tilesets/tiles/'+str(tile_name.get())+str(a+1)+".png")
+                                a-=1
+                        else:
+                            img2.save(folder_selected+'/'+str(tile_name.get())+str(a+1)+'.png')
+                            extrema = img2.convert("P").getextrema()
+                            if extrema == ((255,255)):
+                                os.remove(folder_selected+"/"+str(tile_name.get())+str(a+1)+".png")
+                                a-=1
                         x+=t_s+t_o
                         a+=1
+                        cur_col+=1
+                        if i+1 == max_col or i == column:
+                            break
                     break
+                if  cur_col >= max_col:
+                    cur_col=0
+                    y+=t_s+t_o
+                    x=x_o
                 if not fin:
                     column+=1
                 img2=img.crop((x,y,(x+t_s),(y+t_s)))
                 img2=img2.resize(((t_s*(int(_upscale.get().replace('x','')))),(t_s*(int(_upscale.get().replace('x',''))))),Image.NEAREST)
-                img2.save('tilesets/tiles/'+str(tile_name.get())+str(a+1)+'.png')
-                if open("tilesets/tiles/"+str(tile_name.get())+str(a+1)+".png","rb").read() == open("tilesets/tiles/empty.png","rb").read():
-                    os.remove("tilesets/tiles/"+str(tile_name.get())+str(a+1)+".png")
+                if folder_selected=='':
+                    img2.save('tilesets/tiles/'+str(tile_name.get())+str(a+1)+'.png')
+                    extrema = img2.convert("P").getextrema()
+                    if extrema == ((255,255)):
+                        os.remove("tilesets/tiles/"+str(tile_name.get())+str(a+1)+".png")
+                        a-=1
+                else:
+                    img2.save(folder_selected+'/'+str(tile_name.get())+str(a+1)+'.png')
+                    extrema = img2.convert("P").getextrema()
+                    if extrema == ((255,255)):
+                        os.remove(folder_selected+"/"+str(tile_name.get())+str(a+1)+".png")
+                        a-=1
+                cur_col+=1
                 x+=t_s+t_o
                 a+=1
                 if (a+1)%200 == 0:
                     msg=messagebox.askyesno(title='Warning!',message=(str(a+1)+' tiles were generated, \ndo you want to continue?'))
                     if not msg:
                         break
-            os.remove("tilesets/tiles/empty.png")
-    
+            msg=messagebox.showinfo(title='Succes!',message=('Successfully generated '+str(a)+' tiles :)'))
+
         elif ty=='show_f':
+
             if preview_e.get()==1:
+
+                img=Image.open(liste_images_rip[0])
+
+                hauteur=0
+                largeur=0
+                h, w=img.size
+                img2=img.crop((16,16,32,32))
+
+                x=0
+                y=0
+                t_o=0
+                t_s=0
+
+                t_o=int(((tile_offset.get()).replace('x','')).replace('p',''))
+                x_o=int(((x_tile_offset.get()).replace('x','')).replace('p',''))
+                y_o=int(((y_tile_offset.get()).replace('x','')).replace('p',''))
+                t_s=int(((tile_size.get()).replace('x','')).replace('p',''))
+
                 a=0
 
                 x=x=(t_s*int(x_tile.get()))+x_o
@@ -292,9 +342,15 @@ def rip(ty):
                 img3 = ImageTk.PhotoImage(Image.open(path))
                 preview_.configure(image=img3,borderwidth=0)
                 preview_.im=img3
+                
             else:
-                preview_.configure(image=None,borderwidth=0)
-                preview_.im=None
+
+                empty_ = Image.new('RGBA', (64,64), (0,0,0,0))
+                empty_.save('C:/tmp/empty.png')
+                path='C:/tmp/empty.png'
+                em = ImageTk.PhotoImage(Image.open(path))
+                preview_.configure(image=em,borderwidth=0)
+                preview_.im=em
 
 
     except Exception as error:
@@ -312,7 +368,14 @@ folder_selected=''
 def choose_path():
     global folder_selected
     folder_selected = filedialog.askdirectory()
-    path_.configure(text=('Path: '+str(folder_selected)))
+
+def open_path():
+    global folder_selected
+    if folder_selected=='':
+        path = (os.getcwd()+'/tilesets/tiles/')
+        os.startfile(path)
+    else:
+        os.startfile(folder_selected)
 
 def format_f():
     if format.get()!='.png':
@@ -387,17 +450,21 @@ liste_fs=[]
 for i in range(100):
     liste_fs.append(str(i))
 
-path=Button(text='Choose output folder',command=choose_path)
-path.place(x=2,y=450)
-path_=Label(text='Path: none (current directory)')
-path_.place(x=128,y=452)
+path_=Button(text='Choose output folder',command=choose_path,borderwidth=1)
+path_.place(x=558,y=2)
+path__=Button(text='Open output folder',command=open_path,borderwidth=1)
+path__.place(x=569,y=28)
+bug_report=Button(text='Report a bug',borderwidth=1)
+bug_report.place(x=603,y=54)
+idea_=Button(text='Suggest idea',borderwidth=1)
+idea_.place(x=604,y=80)
 
 #RIP PART
 title_=Label(text='______________________ Tileset ripping ________________________')
 title_.place(x=2,y=280)
-rip_button=Button(text='Rip in separated files',command=lambda:rip('rip'))
+rip_button=Button(text='Rip in separated files',command=lambda:rip('rip'),borderwidth=1)
 rip_button.place(x=100,y=420)
-files_rip=Button(text='Upload image',command=upload_rip)
+files_rip=Button(text='Upload image',command=upload_rip,borderwidth=1)
 files_rip.place(x=2,y=300)
 files_=Label(text='Files: none')
 files_.place(x=88,y=302)
@@ -415,7 +482,7 @@ tile_offset_.place(x=2,y=350)
 tile_offset.place(x=65,y=350)
 
 dim_offset=[]
-for i in range(100):
+for i in range(1025):
     dim_offset.append(str(i)+'px')
 dim_tile=[]
 for i in range(999):
@@ -473,6 +540,15 @@ _upscale.place(x=52,y=394)
 _upscale.set('x1')
 _upscale_=Label(text='Upscale:')
 _upscale_.place(x=2,y=394)
+
+columns_list=['All']
+for i in range(100):
+    columns_list.append(str(i+1))
+columns=ttk.Combobox(values=columns_list,width=3,state='readonly')
+columns.place(x=426,y=334)
+columns_=Label(text='Columns:')
+columns_.place(x=364,y=334)
+columns.set('All')
 
 final=Button(command=create,borderwidth=1,text='Create spritesheet')
 final.place(x=50,y=170)
