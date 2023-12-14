@@ -7,7 +7,11 @@ import os,PIL,webbrowser,urllib.request,requests
 from bs4 import BeautifulSoup
 import eyedropper_
 from eyedropper_ import *
+import cv2 as cv2
+from cv2 import *
+import numpy as np
 
+colors_to_rm=[]
 liste_images=[]
 liste_images_rip=[]
 
@@ -94,7 +98,6 @@ def aff_size():
     except:
         hauteur_.configure(text=('Height: NONE'))
         largeur_.configure(text=('Width: NONE'))
-
 
 def create():
 
@@ -309,12 +312,18 @@ def rip(ty):
                     
                         if folder_selected=='':
                             img2.save('tilesets/tiles/'+str(tile_name.get())+str(a+1)+'.png')
+                            if colors_to_rm!=[]:
+                                for e in colors_to_rm:
+                                    rm_color(str(e).replace('#',''),img2)
                             extrema = img2.convert("L").getextrema()
                             if extrema == ((0,0)):
                                 os.remove('tilesets/tiles/'+str(tile_name.get())+str(a+1)+".png")
                                 a-=1
                         else:
                             img2.save(folder_selected+'/'+str(tile_name.get())+str(a+1)+'.png')
+                            if colors_to_rm!=[]:
+                                for e in colors_to_rm:
+                                    rm_color(str(e).replace('#',''),img2)
                             extrema = img2.convert("L").getextrema()
                             if extrema == ((0,0)):
                                 os.remove(folder_selected+"/"+str(tile_name.get())+str(a+1)+".png")
@@ -337,12 +346,18 @@ def rip(ty):
                 img2=img2.resize(((t_s*(int(_upscale.get().replace('x','')))),(t_s*(int(_upscale.get().replace('x',''))))),Image.NEAREST)
                 if folder_selected=='':
                     img2.save('tilesets/tiles/'+str(tile_name.get())+str(a+1)+'.png')
+                    if colors_to_rm!=[]:
+                        for e in colors_to_rm:
+                            rm_color(str(e).replace('#',''),img2)
                     extrema = img2.convert("L").getextrema()
                     if extrema == ((0,0)):
                         os.remove("tilesets/tiles/"+str(tile_name.get())+str(a+1)+".png")
                         a-=1
                 else:
                     img2.save(folder_selected+'/'+str(tile_name.get())+str(a+1)+'.png')
+                    if colors_to_rm!=[]:
+                        for e in colors_to_rm:
+                            rm_color(str(e).replace('#',''),img2)
                     extrema = img2.convert("L").getextrema()
                     if extrema == ((0,0)):
                         os.remove(folder_selected+"/"+str(tile_name.get())+str(a+1)+".png")
@@ -639,7 +654,7 @@ s_columns_.place(x=364,y=360)
 s_columns.set('1')
 s_columns.bind("<<ComboboxSelected>>", lambda event:rip('show_f'))
 
-bg_remove=Button(text='Background remove',borderwidth=1,command=lambda:eyedropper_win(liste_images_rip[0]))
+bg_remove=Button(text='Background remove',borderwidth=1,command=lambda:eyedropper_win(liste_images_rip[0],colors_to_rm))
 bg_remove.place(x=100,y=420)
 
 final=Button(command=create,borderwidth=1,text='Create spritesheet')
