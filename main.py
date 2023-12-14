@@ -2,10 +2,9 @@ import tkinter as tk
 from tkinter import *
 from tkinter import messagebox, filedialog, ttk, colorchooser
 from tkinter.colorchooser import askcolor
-import PIL
 from PIL import Image,ImageTk
-import os
-import webbrowser
+import os,PIL,webbrowser,urllib.request,requests
+from bs4 import BeautifulSoup
 
 liste_images=[]
 liste_images_rip=[]
@@ -22,14 +21,15 @@ def upload():
 
 def upload_rip():
     global liste_images_rip
-    liste_images_rip=[]
     filename = filedialog.askopenfilename()
     if filename!='':
         files_.configure(text=('File: '+str(filename)))
-    liste_images_rip.append(filename)
-    x_tile.set('0')
-    y_tile.set('0')
-    rip('show_f')
+    if filename!='':
+        liste_images_rip=[]
+        liste_images_rip.append(filename)
+        x_tile.set('0')
+        y_tile.set('0')
+        rip('show_f')
 
 bg_color='#ffffff'
 def change_color():
@@ -229,15 +229,19 @@ def rip(ty):
             y_o=int(((y_tile_offset.get()).replace('x','')).replace('p',''))
             t_s=int(((tile_size.get()).replace('x','')).replace('p',''))
             a=0
-            x=x_o
+            
             y=y_o
             column=0
+            if int(s_columns.get()) > 1:
+                b_o=(t_s+t_o)*int(s_columns.get())
+            else:
+                b_o=0
             if columns.get()!='All':
                 max_col=int(columns.get())
             else:
                 max_col=1000
             fin=False
-
+            x=x_o+b_o
             cur_col=0
 
             if tile_name.get()=='':
@@ -249,12 +253,12 @@ def rip(ty):
                 else:
                     fin=True
                     y+=t_s+t_o
-                    x=x_o
+                    x=x_o+b_o
                     cur_col=0
                 if (y+t_s)>=w:
                     cur_col=0
                     y=w-t_s+y_o
-                    x=x_o
+                    x=x_o+b_o
                     for i in range(100):
                         img2=img.crop((x,y,x+t_s,y+t_s))
                         img2=img2.resize(((t_s*(int(_upscale.get().replace('x','')))),(t_s*(int(_upscale.get().replace('x',''))))),Image.NEAREST)
@@ -279,7 +283,7 @@ def rip(ty):
                 if  cur_col >= max_col:
                     cur_col=0
                     y+=t_s+t_o
-                    x=x_o
+                    x=x_o+b_o
                 if not fin:
                     column+=1
                 img2=img.crop((x,y,(x+t_s),(y+t_s)))
@@ -357,7 +361,6 @@ def rip(ty):
 
     except Exception as error:
         msg=messagebox.showerror(title='Error',message="An error as occured! \n\n(please verify that you've been\nupload your images.)")
-        print(error)
 
 def verif_size():
     if upscale.get() == 'x16' or upscale.get() == 'x32' or upscale.get() == 'x64':
@@ -385,9 +388,23 @@ def format_f():
     else:
         format_.configure(text='')
 
+version=0.01
+
+def update_check():
+    global version
+    r=requests.get("https://mcrhubarb.net/tileset_editor/")
+    soup=BeautifulSoup(r.content,"html.parser")
+    ver_site=soup.find("div",{"class":"ver"}).get_text()
+    if float(version)!=float(ver_site):
+        msg=messagebox.askyesno(title='Found!',message='An updtae is avaliable, do you want to download it?')
+        if msg=='yes':
+            webbrowser.open('https://github.com/Rhubarb06150/tileset_editor/')
+    else:
+        msg=messagebox.showinfo(title='No update found',message='The software seems to be up to date :)')
+
 root=Tk()
 root.geometry('680x480')
-root.title('Tileset Editor')
+root.title('Tileset Editor ('+str(version)+')')
 root.resizable(False,False)
 try:
     root.iconbitmap('icon.ico')
@@ -462,6 +479,8 @@ idea_=Button(text='Suggest idea',borderwidth=1,command=lambda:webbrowser.open('h
 idea_.place(x=604,y=80)
 help_=Button(text='Need help?',borderwidth=1,command=lambda:webbrowser.open('https://github.com/Rhubarb06150/tileset_editor/discussions/categories/help'))
 help_.place(x=612,y=106)
+update=Button(text='Check for updates',borderwidth=1,command=lambda:update_check())
+update.place(x=575,y=132)
 
 #RIP PART
 title_=Label(text='______________________ Tileset ripping ________________________')
@@ -553,6 +572,15 @@ columns.place(x=426,y=334)
 columns_=Label(text='Columns:')
 columns_.place(x=364,y=334)
 columns.set('All')
+
+s_columns_list=[]
+for i in range(100):
+    s_columns_list.append(str(i+1))
+s_columns=ttk.Combobox(values=s_columns_list,width=3,state='readonly')
+s_columns.place(x=460,y=360)
+s_columns_=Label(text='Starting column:')
+s_columns_.place(x=364,y=360)
+s_columns.set('1')
 
 final=Button(command=create,borderwidth=1,text='Create spritesheet')
 final.place(x=50,y=170)
