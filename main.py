@@ -5,15 +5,189 @@ from tkinter.colorchooser import askcolor
 from PIL import Image,ImageTk
 import os,PIL,webbrowser,urllib.request,requests
 from bs4 import BeautifulSoup
-import eyedropper_
-from eyedropper_ import *
+import pyautogui
 import cv2 as cv2
 from cv2 import *
 import numpy as np
 
+
 colors_to_rm=[]
+
+import cv2 as cv2
+from cv2 import *
+import numpy as np
+
 liste_images=[]
 liste_images_rip=[]
+
+color=''
+color_=''
+zo=1
+
+liste_labels=[]
+liste_labels_t=[]
+
+def hex_to_rgb(hex):
+    rgb = []
+    for i in (0, 2, 4):
+        decimal = int(hex[i:i+2], 16)
+        rgb.append(decimal)
+    
+    return tuple(rgb)
+
+def rm_color(color,image):
+    color_=hex_to_rgb(color)
+    img = Image.open(image)
+    img = img.convert("RGBA")
+    datas = img.getdata()
+
+    newData = []
+
+    for item in datas:
+        if item[0] == color_[0] and item[1] == color_[1] and item[2] == color_[2]:
+            newData.append((0, 0, 0, 0))
+        else:
+            newData.append(item)
+
+    img.putdata(newData)
+    img.save(image)
+
+def eyedropper_win(image,color_attr):
+    
+    liste_labels=[]
+    liste_labels_t=[]
+
+    empty__ = Image.new('RGBA', (32,32), (0,0,0,0))
+    empty__.save('C:/tmp/empty__.png')
+    empty__=ImageTk.PhotoImage(Image.open('C:/tmp/empty__.png'))
+
+    master=Toplevel()
+    master.title('Color picker')
+
+    master.iconbitmap('icon.ico')
+    master.geometry('512x256')
+    master.resizable(False,False)
+
+    color_hover=Label(master,image=empty__,border=2,relief='solid')
+    color_hover.place(x=334,y=4)
+    color_hover_=Label(master,text='Color picked:')
+    color_hover_.place(x=258,y=10)
+
+    color_add=Button(master,text='Add color',borderwidth=1)
+    color_add.place(x=376,y=10)
+
+    color_clear=Button(master,text='Clear colors',borderwidth=1)
+    color_clear.place(x=440,y=10)
+
+    for i in range(5):
+
+        label=Label(master,image=empty__,relief='solid',border=2)
+        label.place(x=270,y=(40+(i*34)))
+        label_=Label(master,text='')
+        label_.place(x=310,y=(50+(i*34)))
+
+        liste_labels.append(label)
+        liste_labels_t.append(label_)
+
+    base_image=Label(master,borderwidth=0)
+    base_image.place(x=0,y=0)
+    img_= Image.open(image)
+    img_=img_.crop((0,0,128,128))
+    img_=img_.resize((256,256),Image.NEAREST)
+    img_.save('C:/tmp/color_template.png')
+    img = ImageTk.PhotoImage(Image.open('C:/tmp/color_template.png'))
+    base_image.configure(image=img,borderwidth=0,cursor='tcross')
+    base_image.im=img
+
+    def change_square():
+
+        run_eyedropper()
+        hover_color()
+
+    def hover_color():
+
+        img = ImageTk.PhotoImage(Image.open('C:/tmp/color_template.png'))
+        color_hover.configure(bg=color_)
+        color_hover.im=img
+
+    def run_eyedropper():
+
+        global color
+        global color_
+        img = pyautogui.screenshot()
+        color = img.getpixel(pyautogui.position())
+        color_=('#{0:02x}{1:02x}{2:02x}'.format(*color))
+
+    def add_color(color_attr):
+
+        if color_ not in color_attr:
+            if len(color_attr)==5:
+                msg=messagebox.showerror(title='Error',message="Can't add more than 5 colors to remove!")
+            else:
+                color_attr.append(color_)
+                liste_labels[len(color_attr)-1].configure(bg=color_)
+                liste_labels_t[len(color_attr)-1].configure(text=color_)
+
+    def zoom(dir):
+        global zo
+        if dir=='up':
+            zo+=1
+        else:
+            zo-=1
+        if zo==0:
+            zo=1
+        if zo==5:
+            zo=4
+        x,y=128/zo,128/zo
+        img_= Image.open(image)
+        img_=img_.crop((0,0,x,y))
+        img_=img_.resize((256,256),Image.NEAREST)
+        img_.save('C:/tmp/color_template.png')
+        img = ImageTk.PhotoImage(Image.open('C:/tmp/color_template.png'))
+        base_image.configure(image=img,borderwidth=0,cursor='tcross')
+        base_image.im=img
+
+    def clear_colors(color_attr):
+
+        global colors_to_rm
+
+        if color_attr != []:
+            msg=messagebox.askyesno(title='Warning!',message='Do you want to clear all colors?')
+            if msg:
+                for label in liste_labels:
+                    label.configure(bg='#f0f0f0')
+                for label in liste_labels_t:
+                    label.configure(text='')
+                msg=messagebox.showinfo(title='Cleared',message="All colors were cleared")
+                master.destroy()
+                colors_to_rm=[]
+                
+    for i in range(len(color_attr)):
+        liste_labels[i].configure(bg=color_attr[i])
+        liste_labels_t[i].configure(text=color_attr[i])
+
+
+    def confirm_f():
+
+        msg=messagebox.askyesno(title='Color remove',message='Do you want to remove selected colors from the tileset?')
+        if msg:
+            if color_attr!=[]:
+                master.destroy()
+                msg=messagebox.showinfo(title='Colors removed!',message='The selected colors were removed :)')
+            else:
+                msg=messagebox.showerror(title='Error!',message='No colors to remove!')
+
+    color_add.configure(command=lambda:add_color(color_attr))
+    color_clear.configure(command=lambda:clear_colors(color_attr))
+
+    zoom_plus=Button(master,text='+',command=lambda:zoom('up'),borderwidth=1)
+    zoom_less=Button(master,text='-',command=lambda:zoom('down'),borderwidth=1)
+    zoom_plus.place(x=274,y=230)
+    zoom_less.place(x=260,y=230)
+
+    base_image.bind('<Button-1>',lambda event:change_square())
+
+    master.mainloop()
 
 def upload():
     global liste_images
@@ -116,7 +290,7 @@ def create():
         with Image.open(liste_images[0]) as ima:
             w, h = ima.size
         if transparent.get()==1:
-            img = Image.new('RGBA', (h,w), (255,255,255,0))
+            img = Image.new('RGBA', (h,w), (0,0,0,0))
         else:
             img = Image.new('RGB', (h,w), bg_color)
         a=0
@@ -229,6 +403,7 @@ def create():
         msg=messagebox.showerror(title='Error',message="An error as occured! \n\n(please verify that you've been\nupload your images.)")
 
 def rip(ty):
+    b=0
     try:
 
         if ty=='rip':
@@ -314,8 +489,8 @@ def rip(ty):
                             img2.save('tilesets/tiles/'+str(tile_name.get())+str(a+1)+'.png')
                             if colors_to_rm!=[]:
                                 for e in colors_to_rm:
-                                    rm_color(str(e).replace('#',''),img2)
-                            extrema = img2.convert("L").getextrema()
+                                    rm_color(str(e).replace('#',''),'tilesets/tiles/'+str(tile_name.get())+str(a+1)+'.png')
+                            extrema = Image.open('tilesets/tiles/'+str(tile_name.get())+str(a+1)+'.png').convert("L").getextrema()
                             if extrema == ((0,0)):
                                 os.remove('tilesets/tiles/'+str(tile_name.get())+str(a+1)+".png")
                                 a-=1
@@ -323,14 +498,15 @@ def rip(ty):
                             img2.save(folder_selected+'/'+str(tile_name.get())+str(a+1)+'.png')
                             if colors_to_rm!=[]:
                                 for e in colors_to_rm:
-                                    rm_color(str(e).replace('#',''),img2)
-                            extrema = img2.convert("L").getextrema()
+                                    rm_color(str(e).replace('#',''),folder_selected+'/'+str(tile_name.get())+str(a+1)+'.png')
+                            extrema = Image.open(folder_selected+'/'+str(tile_name.get())+str(a+1)+'.png').convert("L").getextrema()
                             if extrema == ((0,0)):
                                 os.remove(folder_selected+"/"+str(tile_name.get())+str(a+1)+".png")
                                 a-=1
                         
                         x+=t_s+t_o
                         a+=1
+                        b+=1
                         cur_col+=1
                         if i+1 == max_col or i == column:
                             break
@@ -348,8 +524,8 @@ def rip(ty):
                     img2.save('tilesets/tiles/'+str(tile_name.get())+str(a+1)+'.png')
                     if colors_to_rm!=[]:
                         for e in colors_to_rm:
-                            rm_color(str(e).replace('#',''),img2)
-                    extrema = img2.convert("L").getextrema()
+                            rm_color(str(e).replace('#',''),'tilesets/tiles/'+str(tile_name.get())+str(a+1)+'.png')
+                    extrema = Image.open('tilesets/tiles/'+str(tile_name.get())+str(a+1)+'.png').convert("L").getextrema()
                     if extrema == ((0,0)):
                         os.remove("tilesets/tiles/"+str(tile_name.get())+str(a+1)+".png")
                         a-=1
@@ -357,16 +533,17 @@ def rip(ty):
                     img2.save(folder_selected+'/'+str(tile_name.get())+str(a+1)+'.png')
                     if colors_to_rm!=[]:
                         for e in colors_to_rm:
-                            rm_color(str(e).replace('#',''),img2)
-                    extrema = img2.convert("L").getextrema()
+                            rm_color(str(e).replace('#',''),folder_selected+'/'+str(tile_name.get())+str(a+1)+'.png')
+                    extrema = Image.open(folder_selected+'/'+str(tile_name.get())+str(a+1)+'.png').convert("L").getextrema()
                     if extrema == ((0,0)):
                         os.remove(folder_selected+"/"+str(tile_name.get())+str(a+1)+".png")
                         a-=1
                 cur_col+=1
                 x+=t_s+t_o
                 a+=1
-                if (a+1)%200 == 0:
-                    msg=messagebox.askyesno(title='Warning!',message=(str(a+1)+' tiles were generated, \ndo you want to continue?'))
+                b+=1
+                if (b+1)%200 == 0:
+                    msg=messagebox.askyesno(title='Warning!',message=(str(b+1)+' tiles (excluding empty tiles) were generated, \ndo you want to continue?'))
                     if not msg:
                         break
             
@@ -441,7 +618,9 @@ def verif_size():
 folder_selected=''
 def choose_path():
     global folder_selected
-    folder_selected = filedialog.askdirectory()
+    f_s = filedialog.askdirectory()
+    if f_s!='':
+        folder_selected=f_s
 
 def open_path():
     global folder_selected
@@ -457,19 +636,22 @@ def format_f():
     else:
         format_.configure(text='')
 
-version=0.05
+version=0.1
 
 def update_check():
     global version
-    r=requests.get("https://mcrhubarb.net/tileset_editor/")
-    soup=BeautifulSoup(r.content,"html.parser")
-    ver_site=soup.find("div",{"class":"ver"}).get_text()
-    if float(version)!=float(ver_site):
-        msg=messagebox.askyesno(title='Found!',message='An updtae is avaliable, do you want to download it?')
-        if msg:
-            webbrowser.open('https://github.com/Rhubarb06150/tileset_editor/')
-    else:
-        msg=messagebox.showinfo(title='No update found',message='The software seems to be up to date :)')
+    try:
+        r=requests.get("https://mcrhubarb.net/tileset_editor/")
+        soup=BeautifulSoup(r.content,"html.parser")
+        ver_site=soup.find("div",{"class":"ver"}).get_text()
+        if float(version)!=float(ver_site):
+            msg=messagebox.askyesno(title='Found!',message='An updtae is avaliable, do you want to download it?')
+            if msg:
+                webbrowser.open('https://github.com/Rhubarb06150/tileset_editor/')
+        else:
+            msg=messagebox.showinfo(title='No update found',message='The software seems to be up to date :)')
+    except:
+        msg=messagebox.showerror(title='Error',message="Can't check for updates, maybe you aren't connected to network :(")
 
 root=Tk()
 root.geometry('680x480')
@@ -659,5 +841,9 @@ bg_remove.place(x=100,y=420)
 
 final=Button(command=create,borderwidth=1,text='Create spritesheet')
 final.place(x=50,y=170)
+
+if not os.path.exists('C:/tmp/'):
+    os.mkdir('C:/tmp')
+    msg=messagebox.showinfo(title='Hey',message="Your computer didn't have a C:/tmp/ folder so the software automatically created one, please don't delete it or it could cause issuses in the program.")
 
 root.mainloop()
