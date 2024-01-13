@@ -8,6 +8,7 @@ from bs4 import BeautifulSoup
 import pyautogui
 import cv2 as cv2
 from cv2 import *
+from idlelib.tooltip import Hovertip
 import numpy as np
 
 
@@ -255,18 +256,9 @@ def aff_size():
                         hauteur=ima_h
             if smb3.get()==1:
                 largeur=largeur*2
-        if upscale.get()=='x2':
-            hauteur,largeur=hauteur*2,largeur*2
-        elif upscale.get()=='x4':
-            hauteur,largeur=hauteur*4,largeur*4
-        elif upscale.get()=='x8':
-            hauteur,largeur=hauteur*8,largeur*8
-        elif upscale.get()=='x16':
-            hauteur,largeur=hauteur*16,largeur*16
-        elif upscale.get()=='x32':
-            hauteur,largeur=hauteur*32,largeur*32
-        elif upscale.get()=='x64':
-            hauteur,largeur=hauteur*64,largeur*64
+        up_res=int(upscale.get().replace('x',''))
+
+        hauteur,largeur=hauteur*up_res,largeur*up_res
         hauteur_.configure(text=('Height: '+str(hauteur)+'px'))
         largeur_.configure(text=('Width: '+str(largeur)+'px'))
     except:
@@ -316,18 +308,8 @@ def create():
                         img_=ima.copy()
                         img.paste(ima,(0,h*a),mask=ima)
                     a+=1
-            if upscale.get()=='x2':
-                img=img.resize((w*2,h*a*2),Image.NEAREST)
-            if upscale.get()=='x4':
-                img=img.resize((w*4,h*a*4),Image.NEAREST)
-            if upscale.get()=='x8':
-                img=img.resize((w*8,h*a*8),Image.NEAREST)
-            if upscale.get()=='x16':
-                img=img.resize((w*16,h*a*16),Image.NEAREST)
-            if upscale.get()=='x32':
-                img=img.resize((w*32,h*a*32),Image.NEAREST)
-            if upscale.get()=='x64':
-                img=img.resize((w*64,h*a*64),Image.NEAREST)
+            up_res=int(upscale.get().replace('x',''))
+            img=img.resize((w*up_res,h*a*up_res),Image.NEAREST)
         else:
             if smb3.get() == 1:
                 img = img.resize(((((len(liste_images)*w)*2),h)))
@@ -349,18 +331,8 @@ def create():
                         img_=ima.copy()
                         img.paste(ima,(w*a,0),mask=ima)
                     a+=1
-            if upscale.get()=='x2':
-                img=img.resize((w*2*a,h*2),Image.NEAREST)
-            if upscale.get()=='x4':
-                img=img.resize((w*4*a,h*4),Image.NEAREST)
-            if upscale.get()=='x8':
-                img=img.resize((w*8*a,h*8),Image.NEAREST)
-            if upscale.get()=='x16':
-                img=img.resize((w*16*a,h*16),Image.NEAREST)
-            if upscale.get()=='x32':
-                img=img.resize((w*32*a,h*32),Image.NEAREST)
-            if upscale.get()=='x64':
-                img=img.resize((w*64*a,h*64),Image.NEAREST)
+            up_res=int(upscale.get().replace('x',''))
+            img=img.resize((w*up_res*a,h*up_res),Image.NEAREST)
         try:
             if folder_selected != '':
                 if os.path.exists(folder_selected+'/'+str(filename.get())+format.get()):
@@ -450,6 +422,8 @@ def rip(ty):
             if tile_name.get()=='':
                 tile_name.insert(0,'tile-')
 
+            up_res=int(_upscale.get().replace('x',''))
+
             while True:
 
                 if (x+t_s)<=h:
@@ -473,7 +447,7 @@ def rip(ty):
                     for i in range(100):
 
                         img2=img.crop((x,y,x+t_s,y+t_s))
-                        img2=img2.resize(((t_s*(int(_upscale.get().replace('x','')))),(t_s*(int(_upscale.get().replace('x',''))))),Image.NEAREST)
+                        img2=img2.resize(((t_s*up_res),(t_s*up_res)),Image.NEAREST)
                         
                         if i == 0:
                             if max_col != 1000 and max_col != column:
@@ -519,7 +493,7 @@ def rip(ty):
                 if not fin:
                     column+=1
                 img2=img.crop((x,y,(x+t_s),(y+t_s)))
-                img2=img2.resize(((t_s*(int(_upscale.get().replace('x','')))),(t_s*(int(_upscale.get().replace('x',''))))),Image.NEAREST)
+                img2=img2.resize(((t_s*up_res),(t_s*up_res)),Image.NEAREST)
                 if folder_selected=='':
                     img2.save('tilesets/tiles/'+str(tile_name.get())+str(a+1)+'.png')
                     if colors_to_rm!=[]:
@@ -603,7 +577,6 @@ def rip(ty):
                 preview_.configure(image=em,borderwidth=0)
                 preview_.im=em
 
-
     except Exception as error:
         msg=messagebox.showerror(title='Error',message="An error as occured! \n\n(please verify that you've been\nupload your images.)")
         print(error)
@@ -673,6 +646,7 @@ button.place(x=2,y=52)
 
 smb3=IntVar()
 smb3_=tk.Checkbutton(root,text='SMB3 Style',variable=smb3,onvalue=1,offvalue=0,command=aff_size)
+smb3_tip = Hovertip(smb3_,'An symmetry option useful for\nsoftwares like SMBX\n\nexample:\n\nL\nL\nL\n⅃\n⅃\n⅃')
 smb3_.place(x=77,y=80)
 
 liste_sens=['Vertical','Horizontal']
@@ -681,13 +655,13 @@ sens.set('Vertical')
 sens.place(x=2,y=82)
 
 liste_upscale=['x1','x2','x4','x8','x16','x32','x64']
-upscale=ttk.Combobox(values=liste_upscale,width=3,state='readonly')
+upscale=ttk.Combobox(values=liste_upscale,width=6,state='readonly')
 upscale.place(x=140,y=54)
 upscale.set('x1')
 upscale_=Label(text='Upscale:')
 upscale_.place(x=90,y=54)
 avert=Label()
-avert.place(x=194,y=44)
+avert.place(x=200,y=44)
 upscale.bind("<<ComboboxSelected>>", lambda event:verif_size())
 sens.bind("<<ComboboxSelected>>", lambda event:aff_size())
 
@@ -744,7 +718,7 @@ files_rip.place(x=2,y=300)
 files_=Label(text='Files: none')
 files_.place(x=88,y=302)
 
-tile_size_l=['4px','8px','12px','16px','24px','32px','48px','64px']
+tile_size_l=['4px','8px','12px','16px','24px','32px','48px','64px','128px','256px','512px']
 tile_size=ttk.Combobox(values=tile_size_l,width=4,state='readonly')
 tile_size_=Label(text='Tile size:')
 tile_size_.place(x=2,y=328)
@@ -811,7 +785,7 @@ tile_offset.bind("<<ComboboxSelected>>", lambda event:rip('show_f'))
 tile_size.bind("<<ComboboxSelected>>", lambda event:rip('show_f'))
 y_tile.bind("<<ComboboxSelected>>", lambda event:rip('show_f'))
 
-_upscale=ttk.Combobox(values=liste_upscale,width=3,state='readonly')
+_upscale=ttk.Combobox(values=liste_upscale,width=6,state='readonly')
 _upscale.place(x=52,y=394)
 _upscale.set('x1')
 _upscale_=Label(text='Upscale:')
@@ -835,6 +809,20 @@ s_columns_=Label(text='Starting column:')
 s_columns_.place(x=364,y=360)
 s_columns.set('1')
 s_columns.bind("<<ComboboxSelected>>", lambda event:rip('show_f'))
+
+rows_c=ttk.Combobox(values=columns_list,width=3,state='readonly')
+rows_c.place(x=546,y=334)
+rows_c_=Label(text='Rows:')
+rows_c_.place(x=504,y=334)
+rows_c.set('All')
+
+s_rows=ttk.Combobox(values=s_columns_list,width=3,state='readonly')
+s_rows.place(x=580,y=360)
+s_rows_=Label(text='Starting row:')
+s_rows_.place(x=504,y=360)
+s_rows.set('1')
+s_rows.bind("<<ComboboxSelected>>", lambda event:rip('show_f'))
+
 
 bg_remove=Button(text='Background remove',borderwidth=1,command=lambda:eyedropper_win(liste_images_rip[0],colors_to_rm))
 bg_remove.place(x=100,y=420)
