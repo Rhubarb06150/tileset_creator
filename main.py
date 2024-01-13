@@ -210,6 +210,9 @@ def upload_rip():
         x_tile.set('0')
         y_tile.set('0')
         rip('show_f')
+        im=Image.open(liste_images_rip[0])
+        files_.bind('<Button-1>',lambda event:im.show())
+        files_.configure(cursor='hand2')
 
 bg_color='#ffffff'
 def change_color():
@@ -443,6 +446,10 @@ def rip(ty):
                 max_col=int(columns.get())
             else:
                 max_col=1000
+            if rows.get()!='All':
+                max_row=int(rows.get())
+            else:
+                max_row=1000
             fin=False
             x=x_o+b_o
             cur_col=0
@@ -476,7 +483,7 @@ def rip(ty):
                         img2=img2.resize(((t_s*(int(_upscale.get().replace('x','')))),(t_s*(int(_upscale.get().replace('x',''))))),Image.NEAREST)
                         
                         if i == 0:
-                            if max_col != 1000 and max_col != column:
+                            if (max_col != 1000 and max_col != column):
                                 if max_col!=1:
                                     if folder_selected=='':
                                         os.remove('tilesets/tiles/'+str(tile_name.get())+str(a+1)+".png")
@@ -516,6 +523,8 @@ def rip(ty):
                     y+=t_s+t_o
                     x=x_o+b_o
                     row+=1
+                if row >= max_row:
+                    break
                 if not fin:
                     column+=1
                 img2=img.crop((x,y,(x+t_s),(y+t_s)))
@@ -546,6 +555,7 @@ def rip(ty):
                     msg=messagebox.askyesno(title='Warning!',message=(str(b+1)+' tiles (excluding empty tiles) were generated, \ndo you want to continue?'))
                     if not msg:
                         break
+                print(row)
             
             msg=messagebox.showinfo(title='Succes!',message=('Successfully generated '+str(a)+' tiles :)'))
 
@@ -636,7 +646,7 @@ def format_f():
     else:
         format_.configure(text='')
 
-version=0.1
+version=0.2
 
 def update_check():
     global version
@@ -645,7 +655,7 @@ def update_check():
         soup=BeautifulSoup(r.content,"html.parser")
         ver_site=soup.find("div",{"class":"ver"}).get_text()
         if float(version)!=float(ver_site):
-            msg=messagebox.askyesno(title='Found!',message='An updtae is avaliable, do you want to download it?')
+            msg=messagebox.askyesno(title='Found!',message='An updtae is avaliable ('+str(ver_site)+'), do you want to download it?')
             if msg:
                 webbrowser.open('https://github.com/Rhubarb06150/tileset_editor/')
         else:
@@ -653,15 +663,23 @@ def update_check():
     except:
         msg=messagebox.showerror(title='Error',message="Can't check for updates, maybe you aren't connected to network :(")
 
+def place_buttons():
+    update.place(x=(root.winfo_width())-107,y=(root.winfo_height())-26)
+    help_.place(x=(root.winfo_width())-68,y=106)
+    idea_.place(x=(root.winfo_width())-76,y=80)
+    bug_report.place(x=(root.winfo_width())-77,y=54)
+    path__.place(x=(root.winfo_width())-111,y=28)
+    path_.place(x=(root.winfo_width())-122,y=2)
+
 root=Tk()
-root.geometry('680x480')
+root.geometry('880x480')
 root.title('Tileset Editor ('+str(version)+')')
-root.resizable(False,False)
+root.minsize(880,480)
 
 try:
     root.iconbitmap('icon.ico')
 except:
-    b=""
+    ri=""
 title=Label(text='_____________Tilesets / Spritesheets creation _____________')
 title.place(x=2,y=2)
 
@@ -732,7 +750,9 @@ idea_.place(x=604,y=80)
 help_=Button(text='Need help?',borderwidth=1,command=lambda:webbrowser.open('https://github.com/Rhubarb06150/tileset_editor/discussions/categories/help'))
 help_.place(x=612,y=106)
 update=Button(text='Check for updates',borderwidth=1,command=lambda:update_check())
-update.place(x=575,y=132)
+update.place(x=(root.winfo_width())-105,y=132)
+
+root.bind("<Configure>", lambda event:place_buttons())
 
 #RIP PART
 title_=Label(text='______________________ Tileset ripping ________________________')
@@ -744,7 +764,7 @@ files_rip.place(x=2,y=300)
 files_=Label(text='Files: none')
 files_.place(x=88,y=302)
 
-tile_size_l=['4px','8px','12px','16px','24px','32px','48px','64px']
+tile_size_l=['4px','8px','12px','16px','24px','32px','48px','56px','64px']
 tile_size=ttk.Combobox(values=tile_size_l,width=4,state='readonly')
 tile_size_=Label(text='Tile size:')
 tile_size_.place(x=2,y=328)
@@ -826,6 +846,15 @@ columns_=Label(text='Columns:')
 columns_.place(x=364,y=334)
 columns.set('All')
 
+rows_list=['All']
+for i in range(100):
+    rows_list.append(str(i+1))
+rows=ttk.Combobox(values=rows_list,width=3,state='readonly')
+rows.place(x=426,y=304)
+rows_=Label(text='Rows:')
+rows_.place(x=364,y=304)
+rows.set('All')
+
 s_columns_list=[]
 for i in range(100):
     s_columns_list.append(str(i+1))
@@ -841,6 +870,40 @@ bg_remove.place(x=100,y=420)
 
 final=Button(command=create,borderwidth=1,text='Create spritesheet')
 final.place(x=50,y=170)
+
+liste_gfx=[]
+liste_nb=[]
+for i in range(256):
+    liste_nb.append(i+1)
+
+liste_nb_gfx=[]
+def max_gfx():
+    global liste_nb_gfx
+    liste_nb_gfx=[]
+    for i in range(256):
+        if (i+1) == int(gfx_nb.get()):
+            liste_nb_gfx.append(i+1)
+            break
+        else:
+            liste_nb_gfx.append(i+1)
+    gfx_pr.configure(values=liste_nb_gfx)
+    if int(gfx_pr.get())>int(gfx_nb.get()):
+        gfx_pr.set(int(gfx_nb.get()))
+
+gfx_title=Label(text='_____ GFX Expansion (Super Mario Bros. X) _____')
+gfx_title.place(x=510,y=280)
+gfx_nb_=Label(text='Number of GFXs:')
+gfx_nb_.place(x=510,y=300)
+gfx_nb=ttk.Combobox(values=liste_nb,width=5)
+gfx_nb.place(x=608,y=300)
+gfx_pr_=Label(text='GFX Preview:')
+gfx_pr_.place(x=510,y=322)
+gfx_pr=ttk.Combobox(values=liste_nb_gfx,width=5)
+gfx_pr.place(x=586,y=322)
+gfx_pr.set('1')
+gfx_nb.set('1')
+
+gfx_nb.bind("<<ComboboxSelected>>", lambda event:max_gfx())
 
 if not os.path.exists('C:/tmp/'):
     os.mkdir('C:/tmp')
