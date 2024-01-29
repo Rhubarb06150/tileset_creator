@@ -483,6 +483,7 @@ def rip(ty):
                         img2=img2.resize(((t_s*(int(_upscale.get().replace('x','')))),(t_s*(int(_upscale.get().replace('x',''))))),Image.NEAREST)
                         
                         if i == 0:
+
                             if (max_col != 1000 and max_col != column):
                                 if max_col!=1:
                                     if folder_selected=='':
@@ -612,7 +613,6 @@ def rip(ty):
                 em = ImageTk.PhotoImage(Image.open(path))
                 preview_.configure(image=em,borderwidth=0)
                 preview_.im=em
-
 
     except Exception as error:
         msg=messagebox.showerror(title='Error',message="An error as occured! \n\n(please verify that you've been\nupload your images.)")
