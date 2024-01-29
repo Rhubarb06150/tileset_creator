@@ -14,6 +14,48 @@ def continuous_rip(master):
     master=Toplevel()
     master.geometry('480x480')
     master.title('Continuous Rip')
+    master.iconbitmap('icon.ico')
+
+    # FUNCTIONS
+
+    def preview_rip_con():
+        try:
+            int(rip_w.get())
+            int(rip_h.get())
+            int(rip_interval.get())
+            int(rip_pos_x.get())
+            int(rip_pos_y.get())
+            int(max_rip.get())
+
+        except:
+
+            res=''
+            try:
+                int(rip_w.get())
+            except:
+                res+='  -Rip width\n'
+            try:
+                int(rip_h.get())
+            except:
+                res+='  -Rip Height\n'
+            try:
+                int(rip_interval.get())
+            except:
+                res+='  -Rip interval\n'
+            try:
+                int(max_rip.get())
+            except:
+                res+='  -Number of rips\n'
+            try:
+                int(rip_pos_x.get())
+            except:
+                res+='  -Rip position X\n'
+            try:
+                int(rip_pos_y.get())
+            except:
+                res+='  -Rip position Y\n'
+
+            msg=messagebox.showerror(title='Error',message=('please verify following entries:\n\n'+res))
 
     # LABELS
         
@@ -35,7 +77,7 @@ def continuous_rip(master):
     rip_interval=Entry(master,width=8)
     rip_interval.place(x=96,y=74)
 
-    max_rip_l=Label(master,text='Max number of rips:')
+    max_rip_l=Label(master,text='Number of rips:')
     max_rip_l.place(x=2,y=96)
     max_rip=Entry(master,width=8)
     max_rip.place(x=96,y=96)
@@ -50,18 +92,15 @@ def continuous_rip(master):
     rip_pos_y=Entry(master,width=8)
     rip_pos_y.place(x=96,y=140)
 
-    # FUNCTIONS
+    preview_l=Label(master,text='Preview:')
+    preview_l.place(x=180,y=30)
+    img=ImageTk.PhotoImage(Image.open('no_img.png'))
+    preview=Label(master,image=img,borderwidth=0)
+    preview.place(x=230,y=30)
+    preview.im=img
 
-    def preview_rip_con():
-        try:
-            int(rip_w.get())
-            int(rip_h.get())
-            int(rip_w.get())
-            int(rip_w.get())
-            int(rip_w.get())
-            int(rip_w.get())
-        except:
-            msg=messagebox(title='o')
+    preview_button=Button(master,text='Preview zone',command=lambda:preview_rip_con())
+    preview_button.place(x=2,y=162,height=24)
 
     master.mainloop()
 
