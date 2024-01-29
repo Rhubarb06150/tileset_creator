@@ -738,17 +738,13 @@ files_rip.place(x=2,y=300)
 files_=Label(text='Files: none')
 files_.place(x=88,y=302)
 
-<<<<<<< HEAD
-tile_size_l=['4px','8px','12px','16px','24px','32px','48px','64px','128px','256px','512px']
-=======
 tile_size_l=['4px','8px','12px','16px','24px','32px','48px','56px','64px']
->>>>>>> 6c42550b735d568911a2bbf164f683adad2aa7b2
 tile_size=ttk.Combobox(values=tile_size_l,width=4,state='readonly')
 tile_size_=Label(text='Tile size:')
 tile_size_.place(x=2,y=328)
 tile_size.place(x=55,y=328)
 
-tile_offset_l=['0px','1px','2px','3px','4px','5px','6px','7px','8px']
+tile_offset_l=['0px','1px','2px','3px','4px','5px','6px','7px','8px','9px']
 tile_offset=ttk.Combobox(values=tile_offset_l,width=3,state='readonly')
 tile_offset_=Label(text='Tile offset:')
 tile_offset_.place(x=2,y=350)
