@@ -6,10 +6,9 @@ from PIL import Image,ImageTk
 import os,PIL,webbrowser,urllib.request,requests
 from bs4 import BeautifulSoup
 import pyautogui
-import cv2 as cv2
+import cv2
 from cv2 import *
 import numpy as np
-
 
 colors_to_rm=[]
 
@@ -203,16 +202,13 @@ def upload_rip():
     global liste_images_rip
     filename = filedialog.askopenfilename()
     if filename!='':
-        files_.configure(text=('File: '+str(filename)))
-    if filename!='':
         liste_images_rip=[]
         liste_images_rip.append(filename)
-        x_tile.set('0')
-        y_tile.set('0')
         rip('show_f')
         im=Image.open(liste_images_rip[0])
         files_.bind('<Button-1>',lambda event:im.show())
         files_.configure(cursor='hand2')
+    root.title('Tileset Editor ('+str(version)+') Ripping '+str(filename))
 
 bg_color='#ffffff'
 def change_color():
@@ -405,6 +401,25 @@ def create():
     except:
         msg=messagebox.showerror(title='Error',message="An error as occured! \n\n(please verify that you've been\nupload your images.)")
 
+# def skip_check(a):
+#     tiles=int(skip.get())
+#     every=int(skip_f.get())
+#     if a==1:
+#         print('oui')
+#         can=int(tiles)
+#     can-=1
+#     if can==-1:
+#         can=0
+#     print(a,tiles)
+#     if tiles==0:
+#         return True
+#     else:
+#         if a%every==0:
+#             print(a,'oui pour',tiles)
+#             can=tiles
+#             return True
+#     return False
+
 def rip(ty):
     b=0
     try:
@@ -428,10 +443,11 @@ def rip(ty):
             t_o=0
             t_s=0
 
-            t_o=int(((tile_offset.get()).replace('x','')).replace('p',''))
-            x_o=int(((x_tile_offset.get()).replace('x','')).replace('p',''))
-            y_o=int(((y_tile_offset.get()).replace('x','')).replace('p',''))
-            t_s=int(((tile_size.get()).replace('x','')).replace('p',''))
+            t_o=int(tile_offset.get())
+            x_o=int(x_tile_offset.get())
+            y_o=int(y_tile_offset.get())
+            xt_s=int(x_t.get())
+            yt_s=int(y_t.get())
             a=0
             
             row=0
@@ -439,7 +455,7 @@ def rip(ty):
             y=y_o
             column=0
             if int(s_columns.get()) > 1:
-                b_o=(160+t_o)*int(s_columns.get())
+                b_o=(xt_s+t_o)*int(s_columns.get())
             else:
                 b_o=0
             if columns.get()!='All':
@@ -459,28 +475,28 @@ def rip(ty):
 
             while True:
 
-                if (x+160)<=h:
+                if (x+xt_s)<=h:
 
-                    img2=img.crop((x,y,(x+160),(y+144)))
+                    img2=img.crop((x,y,(x+xt_s),(y+yt_s)))
 
                 else:
 
                     fin=True
-                    y+=144+t_o
+                    y+=yt_s+t_o
                     x=x_o+b_o
                     cur_col=0
                     row+=1
 
-                if (y+144)>=w:
+                if (y+yt_s)>=w:
 
                     cur_col=0
-                    y=((144*row)+(row*t_o)+y_o)
+                    y=((yt_s*row)+(row*t_o)+y_o)
                     x=x_o+b_o
                     row+=1
                     for i in range(100):
 
-                        img2=img.crop((x,y,x+160,y+144))
-                        img2=img2.resize(((160*(int(_upscale.get().replace('x','')))),(144*(int(_upscale.get().replace('x',''))))),Image.NEAREST)
+                        img2=img.crop((x,y,x+xt_s,y+yt_s))
+                        img2=img2.resize((xt_s*(int(_upscale.get().replace('x',''))),yt_s*(int(_upscale.get().replace('x','')))),Image.NEAREST)
                         
                         if i == 0:
                             if (max_col != 1000 and max_col != column):
@@ -511,7 +527,7 @@ def rip(ty):
                                 os.remove(folder_selected+"/"+str(tile_name.get())+str(a+1)+".png")
                                 a-=1
                         
-                        x+=160+t_o
+                        x+=xt_s+t_o
                         a+=1
                         b+=1
                         cur_col+=1
@@ -520,15 +536,16 @@ def rip(ty):
                     break
                 if  cur_col >= max_col:
                     cur_col=0
-                    y+=144+t_o
+                    y+=yt_s+t_o
                     x=x_o+b_o
                     row+=1
                 if row >= max_row:
                     break
                 if not fin:
                     column+=1
-                img2=img.crop((x,y,(x+160),(y+144)))
-                img2=img2.resize(((160*(int(_upscale.get().replace('x','')))),(144*(int(_upscale.get().replace('x',''))))),Image.NEAREST)
+                img2=img.crop((x,y,(x+xt_s),(y+yt_s)))
+                img2=img2.resize(((xt_s*(int(_upscale.get().replace('x','')))),(yt_s*(int(_upscale.get().replace('x',''))))),Image.NEAREST)
+                # if skip_check(a+1):
                 if folder_selected=='':
                     img2.save('tilesets/tiles/'+str(tile_name.get())+str(a+1)+'.png')
                     if colors_to_rm!=[]:
@@ -548,14 +565,13 @@ def rip(ty):
                         os.remove(folder_selected+"/"+str(tile_name.get())+str(a+1)+".png")
                         a-=1
                 cur_col+=1
-                x+=160+t_o
+                x+=xt_s+t_o
                 a+=1
                 b+=1
                 if (b+1)%200 == 0:
                     msg=messagebox.askyesno(title='Warning!',message=(str(b+1)+' tiles (excluding empty tiles) were generated, \ndo you want to continue?'))
                     if not msg:
                         break
-                print(row)
             
             msg=messagebox.showinfo(title='Succes!',message=('Successfully generated '+str(a)+' tiles :)'))
 
@@ -573,29 +589,29 @@ def rip(ty):
                 x=0
                 y=0
                 t_o=0
-                t_s=0
 
-                t_o=int(((tile_offset.get()).replace('x','')).replace('p',''))
-                x_o=int(((x_tile_offset.get()).replace('x','')).replace('p',''))
-                y_o=int(((y_tile_offset.get()).replace('x','')).replace('p',''))
-                t_s=int(((tile_size.get()).replace('x','')).replace('p',''))
+                t_o=int((tile_offset.get()))
+                x_o=int((x_tile_offset.get()))
+                y_o=int((y_tile_offset.get()))
+                xt_s=int(x_t.get())
+                yt_s=int(y_t.get())
 
                 if int(s_columns.get()) > 1:
-                    b_o=(t_s+t_o)*int(s_columns.get())
+                    b_o=(xt_s+t_o)*int(s_columns.get())
                 else:
                     b_o=0
                 x_o+=b_o
                 a=0
 
-                x=x=(t_s*int(x_tile.get()))+x_o
-                y=y=(t_s*int(y_tile.get()))+y_o
+                x=(xt_s*int(x_tile.get()))+x_o
+                y=(yt_s*int(y_tile.get()))+y_o
                 column=0
                 fin=False
 
                 off_x=t_o*int(x_tile.get())
                 off_y=t_o*int(y_tile.get())
 
-                img2=img.crop((x+off_x,y+off_y,(x+t_s+off_x),(y+t_s+off_y)))
+                img2=img.crop((x+off_x,y+off_y,(x+xt_s+off_x),(y+yt_s+off_y)))
                 img2=img2.resize((64,64),Image.NEAREST)
                 img2.save('C:/tmp/tile_preview.png')
 
@@ -672,9 +688,9 @@ def place_buttons():
     path_.place(x=(root.winfo_width())-122,y=2)
 
 root=Tk()
-root.geometry('880x480')
+root.geometry('512x480')
 root.title('Tileset Editor ('+str(version)+')')
-root.minsize(880,480)
+root.resizable(False,False)
 
 try:
     root.iconbitmap('icon.ico')
@@ -764,14 +780,21 @@ files_rip.place(x=2,y=300)
 files_=Label(text='Files: none')
 files_.place(x=88,y=302)
 
-tile_size_l=['4px','8px','12px','16px','24px','32px','48px','56px','64px']
-tile_size=ttk.Combobox(values=tile_size_l,width=4,state='readonly')
-tile_size_=Label(text='Tile size:')
+tile_size_l=[]
+for i in range(900):
+    tile_size_l.append(str(i+1)+'px')
+x_t=Entry(width=4)
+y_t=Entry(width=4)
+x_t.insert(0,'56')
+y_t.insert(0,'56')
+tile_size_=Label(text='X & Y:')
 tile_size_.place(x=2,y=328)
-tile_size.place(x=55,y=328)
+x_t.place(x=44,y=328)
+y_t.place(x=70,y=328)
 
 tile_offset_l=['0px','1px','2px','3px','4px','5px','6px','7px','8px']
-tile_offset=ttk.Combobox(values=tile_offset_l,width=3,state='readonly')
+tile_offset=Entry(width=4)
+tile_offset.insert(0,'1')
 tile_offset_=Label(text='Tile offset:')
 tile_offset_.place(x=2,y=350)
 tile_offset.place(x=65,y=350)
@@ -783,12 +806,14 @@ dim_tile=[]
 for i in range(999):
     dim_tile.append(str(i))
 
-x_tile_offset=ttk.Combobox(values=dim_offset,width=3,state='readonly')
+x_tile_offset=Entry(width=4)
+x_tile_offset.insert(0,'1')
 x_tile_offset_=Label(text='Begin offset x:')
 x_tile_offset_.place(x=110,y=326)
 x_tile_offset.place(x=194,y=326)
 
-y_tile_offset=ttk.Combobox(values=dim_offset,width=3,state='readonly')
+y_tile_offset=Entry(width=4)
+y_tile_offset.insert(0,'18')
 y_tile_offset_=Label(text='Begin offset y:')
 y_tile_offset_.place(x=110,y=350)
 y_tile_offset.place(x=194,y=350)
@@ -800,16 +825,24 @@ tile_name.place(x=70,y=372)
 tile_name_f=Label(text='.png')
 tile_name_f.place(x=134,y=372)
 
-x_tile=ttk.Combobox(values=dim_tile,width=3,state='readonly')
-y_tile=ttk.Combobox(values=dim_tile,width=3,state='readonly')
+x_tile=Entry(width=4)
+x_tile.insert(0,'0')
+y_tile=Entry(width=4)
+y_tile.insert(0,'0')
 x_tile_=Label(text='X:')
 y_tile_=Label(text='Y:')
 x_tile_.place(x=240,y=334)
 y_tile_.place(x=304,y=334)
 x_tile.place(x=256,y=334)
 y_tile.place(x=320,y=334)
-x_tile.set(0)
-y_tile.set(0)
+skip=Entry(width=4)
+skip.insert(0,'0')
+skip.place(x=132,y=394)
+skip_f=Entry(width=4)
+skip_f.insert(0,'0')
+skip_f.place(x=160,y=394)
+skip_=Label(text='Skip:')
+skip_.place(x=100,y=394)
 
 preview_e=IntVar()
 preview=Checkbutton(text='Tile preview',variable=preview_e,onvalue=1,offvalue=0,command=lambda:rip('show_f'))
@@ -818,18 +851,15 @@ preview.place(x=2,y=420)
 preview_=Label(root)
 preview_.place(x=240,y=360)
 
-x_tile_offset.set('0px')
-y_tile_offset.set('0px')
-tile_offset.set('0px')
-tile_size.set('16px')
-
 x_tile_offset.bind("<<ComboboxSelected>>", lambda event:rip('show_f'))
 y_tile_offset.bind("<<ComboboxSelected>>", lambda event:rip('show_f'))
 x_tile.bind("<<ComboboxSelected>>", lambda event:rip('show_f'))
 y_tile.bind("<<ComboboxSelected>>", lambda event:rip('show_f'))
 tile_offset.bind("<<ComboboxSelected>>", lambda event:rip('show_f'))
-tile_size.bind("<<ComboboxSelected>>", lambda event:rip('show_f'))
+x_t.bind("<<ComboboxSelected>>", lambda event:rip('show_f'))
+y_t.bind("<<ComboboxSelected>>", lambda event:rip('show_f'))
 y_tile.bind("<<ComboboxSelected>>", lambda event:rip('show_f'))
+root.bind("<Return>", lambda event:rip('show_f'))
 
 _upscale=ttk.Combobox(values=liste_upscale,width=3,state='readonly')
 _upscale.place(x=52,y=394)
@@ -871,39 +901,39 @@ bg_remove.place(x=100,y=420)
 final=Button(command=create,borderwidth=1,text='Create spritesheet')
 final.place(x=50,y=170)
 
-liste_gfx=[]
-liste_nb=[]
-for i in range(256):
-    liste_nb.append(i+1)
+# liste_gfx=[]
+# liste_nb=[]
+# for i in range(256):
+#     liste_nb.append(i+1)
 
-liste_nb_gfx=[]
-def max_gfx():
-    global liste_nb_gfx
-    liste_nb_gfx=[]
-    for i in range(256):
-        if (i+1) == int(gfx_nb.get()):
-            liste_nb_gfx.append(i+1)
-            break
-        else:
-            liste_nb_gfx.append(i+1)
-    gfx_pr.configure(values=liste_nb_gfx)
-    if int(gfx_pr.get())>int(gfx_nb.get()):
-        gfx_pr.set(int(gfx_nb.get()))
+# liste_nb_gfx=[]
+# def max_gfx():
+#     global liste_nb_gfx
+#     liste_nb_gfx=[]
+#     for i in range(256):
+#         if (i+1) == int(gfx_nb.get()):
+#             liste_nb_gfx.append(i+1)
+#             break
+#         else:
+#             liste_nb_gfx.append(i+1)
+#     gfx_pr.configure(values=liste_nb_gfx)
+#     if int(gfx_pr.get())>int(gfx_nb.get()):
+#         gfx_pr.set(int(gfx_nb.get()))
 
-gfx_title=Label(text='_____ GFX Expansion (Super Mario Bros. X) _____')
-gfx_title.place(x=510,y=280)
-gfx_nb_=Label(text='Number of GFXs:')
-gfx_nb_.place(x=510,y=300)
-gfx_nb=ttk.Combobox(values=liste_nb,width=5)
-gfx_nb.place(x=608,y=300)
-gfx_pr_=Label(text='GFX Preview:')
-gfx_pr_.place(x=510,y=322)
-gfx_pr=ttk.Combobox(values=liste_nb_gfx,width=5)
-gfx_pr.place(x=586,y=322)
-gfx_pr.set('1')
-gfx_nb.set('1')
+# gfx_title=Label(text='_____ GFX Expansion (Super Mario Bros. X) _____')
+# gfx_title.place(x=510,y=280)
+# gfx_nb_=Label(text='Number of GFXs:')
+# gfx_nb_.place(x=510,y=300)
+# gfx_nb=ttk.Combobox(values=liste_nb,width=5)
+# gfx_nb.place(x=608,y=300)
+# gfx_pr_=Label(text='GFX Preview:')
+# gfx_pr_.place(x=510,y=322)
+# gfx_pr=ttk.Combobox(values=liste_nb_gfx,width=5)
+# gfx_pr.place(x=586,y=322)
+# gfx_pr.set('1')
+# gfx_nb.set('1')
 
-gfx_nb.bind("<<ComboboxSelected>>", lambda event:max_gfx())
+# gfx_nb.bind("<<ComboboxSelected>>", lambda event:max_gfx())
 
 if not os.path.exists('C:/tmp/'):
     os.mkdir('C:/tmp')

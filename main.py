@@ -457,6 +457,7 @@ def rip(ty):
                         img2=img2.resize(((t_s*up_res),(t_s*up_res)),Image.NEAREST)
                         
                         if i == 0:
+
                             if (max_col != 1000 and max_col != column):
                                 if max_col!=1:
                                     if folder_selected=='':
