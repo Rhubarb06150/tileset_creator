@@ -7,6 +7,7 @@ import os,PIL,webbrowser,urllib.request,requests
 from bs4 import BeautifulSoup
 import pyautogui
 import cv2 as cv2
+import bs4
 from cv2 import *
 from idlelib.tooltip import Hovertip
 import numpy as np
@@ -620,21 +621,23 @@ def format_f():
     else:
         format_.configure(text='')
 
-version=0.2
+version=0.1
 
 def update_check():
     global version
     try:
-        r=requests.get("https://mcrhubarb.net/tileset_editor/")
-        soup=BeautifulSoup(r.content,"html.parser")
-        ver_site=soup.find("div",{"class":"ver"}).get_text()
-        if float(version)!=float(ver_site):
-            msg=messagebox.askyesno(title='Found!',message='An updtae is avaliable ('+str(ver_site)+'), do you want to download it?')
+        content=urllib.request.urlopen('https://mcrhubarb.net/softwares/index.html')
+        content=bs4.BeautifulSoup(content, 'html.parser')
+        verspan = content.find(id='tever')
+        last_ver=verspan=float(verspan.text)
+        if float(version)!=float(last_ver):
+            msg=messagebox.askyesno(title='Found!',message='An update is avaliable ('+str(last_ver)+'), do you want to download it?')
             if msg:
-                webbrowser.open('https://github.com/Rhubarb06150/tileset_editor/')
+                webbrowser.open('https://mcrhubarb.net/sofwares/')
         else:
-            msg=messagebox.showinfo(title='No update found',message='The software seems to be up to date :)')
-    except:
+            msg=messagebox.showinfo(title='Up to date',message='The software is up to date :)')
+    except Exception as e:
+        print(e)
         msg=messagebox.showerror(title='Error',message="Can't check for updates, maybe you aren't connected to network :(")
 
 def place_buttons():
@@ -859,40 +862,6 @@ bg_remove.place(x=100,y=420)
 
 final=Button(command=create,borderwidth=1,text='Create spritesheet')
 final.place(x=50,y=170)
-
-liste_gfx=[]
-liste_nb=[]
-for i in range(256):
-    liste_nb.append(i+1)
-
-liste_nb_gfx=[]
-def max_gfx():
-    global liste_nb_gfx
-    liste_nb_gfx=[]
-    for i in range(256):
-        if (i+1) == int(gfx_nb.get()):
-            liste_nb_gfx.append(i+1)
-            break
-        else:
-            liste_nb_gfx.append(i+1)
-    gfx_pr.configure(values=liste_nb_gfx)
-    if int(gfx_pr.get())>int(gfx_nb.get()):
-        gfx_pr.set(int(gfx_nb.get()))
-
-gfx_title=Label(text='_____ GFX Expansion (Super Mario Bros. X) _____')
-gfx_title.place(x=510,y=280)
-gfx_nb_=Label(text='Number of GFXs:')
-gfx_nb_.place(x=510,y=300)
-gfx_nb=ttk.Combobox(values=liste_nb,width=5)
-gfx_nb.place(x=608,y=300)
-gfx_pr_=Label(text='GFX Preview:')
-gfx_pr_.place(x=510,y=322)
-gfx_pr=ttk.Combobox(values=liste_nb_gfx,width=5)
-gfx_pr.place(x=586,y=322)
-gfx_pr.set('1')
-gfx_nb.set('1')
-
-gfx_nb.bind("<<ComboboxSelected>>", lambda event:max_gfx())
 
 if not os.path.exists('C:/tmp/'):
     os.mkdir('C:/tmp')
