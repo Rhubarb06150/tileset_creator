@@ -6,12 +6,9 @@ from PIL import Image,ImageTk
 import os,PIL,webbrowser,urllib.request,requests
 from bs4 import BeautifulSoup
 import pyautogui
-import cv2 as cv2
-import bs4
+import cv2
 from cv2 import *
-from idlelib.tooltip import Hovertip
 import numpy as np
-
 
 colors_to_rm=[]
 
@@ -55,148 +52,151 @@ def rm_color(color,image):
     img.save(image)
 
 def eyedropper_win(image,color_attr):
+
+    try:
     
-    liste_labels=[]
-    liste_labels_t=[]
+        liste_labels=[]
+        liste_labels_t=[]
 
-    empty__ = Image.new('RGBA', (32,32), (0,0,0,0))
-    empty__.save('C:/tmp/empty__.png')
-    empty__=ImageTk.PhotoImage(Image.open('C:/tmp/empty__.png'))
+        empty__ = Image.new('RGBA', (32,32), (0,0,0,0))
+        empty__.save('C:/tmp/empty__.png')
+        empty__=ImageTk.PhotoImage(Image.open('C:/tmp/empty__.png'))
 
-    master=Toplevel()
-    master.title('Color picker')
+        master=Toplevel()
+        master.title('Color picker')
 
-    master.iconbitmap('icon.ico')
-    master.geometry('512x256')
-    master.resizable(False,False)
+        master.iconbitmap('icon.ico')
+        master.geometry('512x256')
+        master.resizable(False,False)
 
-    color_hover=Label(master,image=empty__,border=2,relief='solid')
-    color_hover.place(x=334,y=4)
-    color_hover_=Label(master,text='Color picked:')
-    color_hover_.place(x=258,y=10)
+        color_hover=Label(master,image=empty__,border=2,relief='solid')
+        color_hover.place(x=334,y=4)
+        color_hover_=Label(master,text='Color picked:')
+        color_hover_.place(x=258,y=10)
 
-    color_add=Button(master,text='Add color',borderwidth=1)
-    color_add.place(x=376,y=10)
+        color_add=Button(master,text='Add color',borderwidth=1)
+        color_add.place(x=376,y=10)
 
-    color_clear=Button(master,text='Clear colors',borderwidth=1)
-    color_clear.place(x=440,y=10)
+        color_clear=Button(master,text='Clear colors',borderwidth=1)
+        color_clear.place(x=440,y=10)
 
-    for i in range(5):
+        for i in range(5):
 
-        label=Label(master,image=empty__,relief='solid',border=2)
-        label.place(x=270,y=(40+(i*34)))
-        label_=Label(master,text='')
-        label_.place(x=310,y=(50+(i*34)))
+            label=Label(master,image=empty__,relief='solid',border=2)
+            label.place(x=270,y=(40+(i*34)))
+            label_=Label(master,text='')
+            label_.place(x=310,y=(50+(i*34)))
 
-        liste_labels.append(label)
-        liste_labels_t.append(label_)
+            liste_labels.append(label)
+            liste_labels_t.append(label_)
 
-    base_image=Label(master,borderwidth=0)
-    base_image.place(x=0,y=0)
-    img_= Image.open(image)
-    img_=img_.crop((0,0,128,128))
-    img_=img_.resize((256,256),Image.NEAREST)
-    img_.save('C:/tmp/color_template.png')
-    img = ImageTk.PhotoImage(Image.open('C:/tmp/color_template.png'))
-    base_image.configure(image=img,borderwidth=0,cursor='tcross')
-    base_image.im=img
-
-    def change_square():
-
-        run_eyedropper()
-        hover_color()
-
-    def hover_color():
-
-        img = ImageTk.PhotoImage(Image.open('C:/tmp/color_template.png'))
-        color_hover.configure(bg=color_)
-        color_hover.im=img
-
-    def run_eyedropper():
-
-        global color
-        global color_
-        img = pyautogui.screenshot()
-        color = img.getpixel(pyautogui.position())
-        color_=('#{0:02x}{1:02x}{2:02x}'.format(*color))
-
-    def add_color(color_attr):
-
-        if color_ not in color_attr:
-            if len(color_attr)==5:
-                msg=messagebox.showerror(title='Error',message="Can't add more than 5 colors to remove!")
-            else:
-                color_attr.append(color_)
-                liste_labels[len(color_attr)-1].configure(bg=color_)
-                liste_labels_t[len(color_attr)-1].configure(text=color_)
-
-    def zoom(dir):
-        global zo
-        if dir=='up':
-            zo+=1
-        else:
-            zo-=1
-        if zo==0:
-            zo=1
-        if zo==5:
-            zo=4
-        x,y=128/zo,128/zo
+        base_image=Label(master,borderwidth=0)
+        base_image.place(x=0,y=0)
         img_= Image.open(image)
-        img_=img_.crop((0,0,x,y))
+        img_=img_.crop((0,0,128,128))
         img_=img_.resize((256,256),Image.NEAREST)
         img_.save('C:/tmp/color_template.png')
         img = ImageTk.PhotoImage(Image.open('C:/tmp/color_template.png'))
         base_image.configure(image=img,borderwidth=0,cursor='tcross')
         base_image.im=img
 
-    def clear_colors(color_attr):
+        def change_square():
 
-        global colors_to_rm
+            run_eyedropper()
+            hover_color()
 
-        if color_attr != []:
-            msg=messagebox.askyesno(title='Warning!',message='Do you want to clear all colors?')
-            if msg:
-                for label in liste_labels:
-                    label.configure(bg='#f0f0f0')
-                for label in liste_labels_t:
-                    label.configure(text='')
-                msg=messagebox.showinfo(title='Cleared',message="All colors were cleared")
-                master.destroy()
-                colors_to_rm=[]
-                
-    for i in range(len(color_attr)):
-        liste_labels[i].configure(bg=color_attr[i])
-        liste_labels_t[i].configure(text=color_attr[i])
+        def hover_color():
 
+            img = ImageTk.PhotoImage(Image.open('C:/tmp/color_template.png'))
+            color_hover.configure(bg=color_)
+            color_hover.im=img
 
-    def confirm_f():
+        def run_eyedropper():
 
-        msg=messagebox.askyesno(title='Color remove',message='Do you want to remove selected colors from the tileset?')
-        if msg:
-            if color_attr!=[]:
-                master.destroy()
-                msg=messagebox.showinfo(title='Colors removed!',message='The selected colors were removed :)')
+            global color
+            global color_
+            img = pyautogui.screenshot()
+            color = img.getpixel(pyautogui.position())
+            color_=('#{0:02x}{1:02x}{2:02x}'.format(*color))
+
+        def add_color(color_attr):
+
+            if color_ not in color_attr:
+                if len(color_attr)==5:
+                    msg=messagebox.showerror(title='Error',message="Can't add more than 5 colors to remove!")
+                else:
+                    color_attr.append(color_)
+                    liste_labels[len(color_attr)-1].configure(bg=color_)
+                    liste_labels_t[len(color_attr)-1].configure(text=color_)
+
+        def zoom(dir):
+            global zo
+            if dir=='up':
+                zo+=1
             else:
-                msg=messagebox.showerror(title='Error!',message='No colors to remove!')
+                zo-=1
+            if zo==0:
+                zo=1
+            if zo==5:
+                zo=4
+            x,y=128/zo,128/zo
+            img_= Image.open(image)
+            img_=img_.crop((0,0,x,y))
+            img_=img_.resize((256,256),Image.NEAREST)
+            img_.save('C:/tmp/color_template.png')
+            img = ImageTk.PhotoImage(Image.open('C:/tmp/color_template.png'))
+            base_image.configure(image=img,borderwidth=0,cursor='tcross')
+            base_image.im=img
 
-    color_add.configure(command=lambda:add_color(color_attr))
-    color_clear.configure(command=lambda:clear_colors(color_attr))
+        def clear_colors(color_attr):
 
-    zoom_plus=Button(master,text='+',command=lambda:zoom('up'),borderwidth=1)
-    zoom_less=Button(master,text='-',command=lambda:zoom('down'),borderwidth=1)
-    zoom_plus.place(x=274,y=230)
-    zoom_less.place(x=260,y=230)
+            global colors_to_rm
 
-    base_image.bind('<Button-1>',lambda event:change_square())
+            if color_attr != []:
+                msg=messagebox.askyesno(title='Warning!',message='Do you want to clear all colors?')
+                if msg:
+                    for label in liste_labels:
+                        label.configure(bg='#f0f0f0')
+                    for label in liste_labels_t:
+                        label.configure(text='')
+                    msg=messagebox.showinfo(title='Cleared',message="All colors were cleared")
+                    master.destroy()
+                    colors_to_rm=[]
+                    
+        for i in range(len(color_attr)):
+            liste_labels[i].configure(bg=color_attr[i])
+            liste_labels_t[i].configure(text=color_attr[i])
 
-    master.mainloop()
+        def confirm_f():
+
+            msg=messagebox.askyesno(title='Color remove',message='Do you want to remove selected colors from the tileset?')
+            if msg:
+                if color_attr!=[]:
+                    master.destroy()
+                    msg=messagebox.showinfo(title='Colors removed!',message='The selected colors were removed :)')
+                else:
+                    msg=messagebox.showerror(title='Error!',message='No colors to remove!')
+
+        color_add.configure(command=lambda:add_color(color_attr))
+        color_clear.configure(command=lambda:clear_colors(color_attr))
+
+        zoom_plus=Button(master,text='+',command=lambda:zoom('up'),borderwidth=1)
+        zoom_less=Button(master,text='-',command=lambda:zoom('down'),borderwidth=1)
+        zoom_plus.place(x=274,y=230)
+        zoom_less.place(x=260,y=230)
+
+        base_image.bind('<Button-1>',lambda event:change_square())
+
+        master.mainloop()
+        
+    except:
+
+        msg=messagebox.showerror(title='Error',message="An error as occured! \n\n(please verify that you've been\nupload your images.)")
 
 def upload():
     global liste_images
     liste_images=[]
     filename = filedialog.askopenfilenames()
-    if filename!='':
-        fichier.configure(text=('Files: '+str(filename)))
     for i in filename:
         liste_images.append(i)
     aff_size()
@@ -205,16 +205,11 @@ def upload_rip():
     global liste_images_rip
     filename = filedialog.askopenfilename()
     if filename!='':
-        files_.configure(text=('File: '+str(filename)))
-    if filename!='':
         liste_images_rip=[]
         liste_images_rip.append(filename)
-        x_tile.set('0')
-        y_tile.set('0')
         rip('show_f')
         im=Image.open(liste_images_rip[0])
-        files_.bind('<Button-1>',lambda event:im.show())
-        files_.configure(cursor='hand2')
+    root.title('Tileset Editor ('+str(version)+') Ripping '+str(filename))
 
 bg_color='#ffffff'
 def change_color():
@@ -260,9 +255,18 @@ def aff_size():
                         hauteur=ima_h
             if smb3.get()==1:
                 largeur=largeur*2
-        up_res=int(upscale.get().replace('x',''))
-
-        hauteur,largeur=hauteur*up_res,largeur*up_res
+        if upscale.get()=='x2':
+            hauteur,largeur=hauteur*2,largeur*2
+        elif upscale.get()=='x4':
+            hauteur,largeur=hauteur*4,largeur*4
+        elif upscale.get()=='x8':
+            hauteur,largeur=hauteur*8,largeur*8
+        elif upscale.get()=='x16':
+            hauteur,largeur=hauteur*16,largeur*16
+        elif upscale.get()=='x32':
+            hauteur,largeur=hauteur*32,largeur*32
+        elif upscale.get()=='x64':
+            hauteur,largeur=hauteur*64,largeur*64
         hauteur_.configure(text=('Height: '+str(hauteur)+'px'))
         largeur_.configure(text=('Width: '+str(largeur)+'px'))
     except:
@@ -312,8 +316,18 @@ def create():
                         img_=ima.copy()
                         img.paste(ima,(0,h*a),mask=ima)
                     a+=1
-            up_res=int(upscale.get().replace('x',''))
-            img=img.resize((w*up_res,h*a*up_res),Image.NEAREST)
+            if upscale.get()=='x2':
+                img=img.resize((w*2,h*a*2),Image.NEAREST)
+            if upscale.get()=='x4':
+                img=img.resize((w*4,h*a*4),Image.NEAREST)
+            if upscale.get()=='x8':
+                img=img.resize((w*8,h*a*8),Image.NEAREST)
+            if upscale.get()=='x16':
+                img=img.resize((w*16,h*a*16),Image.NEAREST)
+            if upscale.get()=='x32':
+                img=img.resize((w*32,h*a*32),Image.NEAREST)
+            if upscale.get()=='x64':
+                img=img.resize((w*64,h*a*64),Image.NEAREST)
         else:
             if smb3.get() == 1:
                 img = img.resize(((((len(liste_images)*w)*2),h)))
@@ -335,8 +349,18 @@ def create():
                         img_=ima.copy()
                         img.paste(ima,(w*a,0),mask=ima)
                     a+=1
-            up_res=int(upscale.get().replace('x',''))
-            img=img.resize((w*up_res*a,h*up_res),Image.NEAREST)
+            if upscale.get()=='x2':
+                img=img.resize((w*2*a,h*2),Image.NEAREST)
+            if upscale.get()=='x4':
+                img=img.resize((w*4*a,h*4),Image.NEAREST)
+            if upscale.get()=='x8':
+                img=img.resize((w*8*a,h*8),Image.NEAREST)
+            if upscale.get()=='x16':
+                img=img.resize((w*16*a,h*16),Image.NEAREST)
+            if upscale.get()=='x32':
+                img=img.resize((w*32*a,h*32),Image.NEAREST)
+            if upscale.get()=='x64':
+                img=img.resize((w*64*a,h*64),Image.NEAREST)
         try:
             if folder_selected != '':
                 if os.path.exists(folder_selected+'/'+str(filename.get())+format.get()):
@@ -401,10 +425,11 @@ def rip(ty):
             t_o=0
             t_s=0
 
-            t_o=int(((tile_offset.get()).replace('x','')).replace('p',''))
-            x_o=int(((x_tile_offset.get()).replace('x','')).replace('p',''))
-            y_o=int(((y_tile_offset.get()).replace('x','')).replace('p',''))
-            t_s=int(((tile_size.get()).replace('x','')).replace('p',''))
+            t_o=int(tile_offset.get())
+            x_o=int(x_tile_offset.get())
+            y_o=int(y_tile_offset.get())
+            xt_s=int(x_t.get())
+            yt_s=int(y_t.get())
             a=0
             
             row=0
@@ -412,7 +437,7 @@ def rip(ty):
             y=y_o
             column=0
             if int(s_columns.get()) > 1:
-                b_o=(t_s+t_o)*int(s_columns.get())
+                b_o=(xt_s+t_o)*int(s_columns.get())
             else:
                 b_o=0
             if columns.get()!='All':
@@ -430,35 +455,32 @@ def rip(ty):
             if tile_name.get()=='':
                 tile_name.insert(0,'tile-')
 
-            up_res=int(_upscale.get().replace('x',''))
-
             while True:
 
-                if (x+t_s)<=h:
+                if (x+xt_s)<=h:
 
-                    img2=img.crop((x,y,(x+t_s),(y+t_s)))
+                    img2=img.crop((x,y,(x+xt_s),(y+yt_s)))
 
                 else:
 
                     fin=True
-                    y+=t_s+t_o
+                    y+=yt_s+t_o
                     x=x_o+b_o
                     cur_col=0
                     row+=1
 
-                if (y+t_s)>=w:
+                if (y+yt_s)>=w:
 
                     cur_col=0
-                    y=((t_s*row)+(row*t_o)+y_o)
+                    y=((yt_s*row)+(row*t_o)+y_o)
                     x=x_o+b_o
                     row+=1
                     for i in range(100):
 
-                        img2=img.crop((x,y,x+t_s,y+t_s))
-                        img2=img2.resize(((t_s*up_res),(t_s*up_res)),Image.NEAREST)
+                        img2=img.crop((x,y,x+xt_s,y+yt_s))
+                        img2=img2.resize((xt_s*(int(_upscale.get().replace('x',''))),yt_s*(int(_upscale.get().replace('x','')))),Image.NEAREST)
                         
                         if i == 0:
-
                             if (max_col != 1000 and max_col != column):
                                 if max_col!=1:
                                     if folder_selected=='':
@@ -487,7 +509,7 @@ def rip(ty):
                                 os.remove(folder_selected+"/"+str(tile_name.get())+str(a+1)+".png")
                                 a-=1
                         
-                        x+=t_s+t_o
+                        x+=xt_s+t_o
                         a+=1
                         b+=1
                         cur_col+=1
@@ -496,15 +518,16 @@ def rip(ty):
                     break
                 if  cur_col >= max_col:
                     cur_col=0
-                    y+=t_s+t_o
+                    y+=yt_s+t_o
                     x=x_o+b_o
                     row+=1
                 if row >= max_row:
                     break
                 if not fin:
                     column+=1
-                img2=img.crop((x,y,(x+t_s),(y+t_s)))
-                img2=img2.resize(((t_s*up_res),(t_s*up_res)),Image.NEAREST)
+                img2=img.crop((x,y,(x+xt_s),(y+yt_s)))
+                img2=img2.resize(((xt_s*(int(_upscale.get().replace('x','')))),(yt_s*(int(_upscale.get().replace('x',''))))),Image.NEAREST)
+                # if skip_check(a+1):
                 if folder_selected=='':
                     img2.save('tilesets/tiles/'+str(tile_name.get())+str(a+1)+'.png')
                     if colors_to_rm!=[]:
@@ -524,14 +547,13 @@ def rip(ty):
                         os.remove(folder_selected+"/"+str(tile_name.get())+str(a+1)+".png")
                         a-=1
                 cur_col+=1
-                x+=t_s+t_o
+                x+=xt_s+t_o
                 a+=1
                 b+=1
                 if (b+1)%200 == 0:
                     msg=messagebox.askyesno(title='Warning!',message=(str(b+1)+' tiles (excluding empty tiles) were generated, \ndo you want to continue?'))
                     if not msg:
                         break
-                print(row)
             
             msg=messagebox.showinfo(title='Succes!',message=('Successfully generated '+str(a)+' tiles :)'))
 
@@ -549,29 +571,29 @@ def rip(ty):
                 x=0
                 y=0
                 t_o=0
-                t_s=0
 
-                t_o=int(((tile_offset.get()).replace('x','')).replace('p',''))
-                x_o=int(((x_tile_offset.get()).replace('x','')).replace('p',''))
-                y_o=int(((y_tile_offset.get()).replace('x','')).replace('p',''))
-                t_s=int(((tile_size.get()).replace('x','')).replace('p',''))
+                t_o=int((tile_offset.get()))
+                x_o=int((x_tile_offset.get()))
+                y_o=int((y_tile_offset.get()))
+                xt_s=int(x_t.get())
+                yt_s=int(y_t.get())
 
                 if int(s_columns.get()) > 1:
-                    b_o=(t_s+t_o)*int(s_columns.get())
+                    b_o=(xt_s+t_o)*int(s_columns.get())
                 else:
                     b_o=0
                 x_o+=b_o
                 a=0
 
-                x=x=(t_s*int(x_tile.get()))+x_o
-                y=y=(t_s*int(y_tile.get()))+y_o
+                x=(xt_s*int(x_tile.get()))+x_o
+                y=(yt_s*int(y_tile.get()))+y_o
                 column=0
                 fin=False
 
                 off_x=t_o*int(x_tile.get())
                 off_y=t_o*int(y_tile.get())
 
-                img2=img.crop((x+off_x,y+off_y,(x+t_s+off_x),(y+t_s+off_y)))
+                img2=img.crop((x+off_x,y+off_y,(x+xt_s+off_x),(y+yt_s+off_y)))
                 img2=img2.resize((64,64),Image.NEAREST)
                 img2.save('C:/tmp/tile_preview.png')
 
@@ -588,6 +610,7 @@ def rip(ty):
                 em = ImageTk.PhotoImage(Image.open(path))
                 preview_.configure(image=em,borderwidth=0)
                 preview_.im=em
+
 
     except Exception as error:
         msg=messagebox.showerror(title='Error',message="An error as occured! \n\n(please verify that you've been\nupload your images.)")
@@ -621,23 +644,21 @@ def format_f():
     else:
         format_.configure(text='')
 
-version=0.1
+version=0.2
 
 def update_check():
     global version
     try:
-        content=urllib.request.urlopen('https://mcrhubarb.net/softwares/index.html')
-        content=bs4.BeautifulSoup(content, 'html.parser')
-        verspan = content.find(id='tever')
-        last_ver=verspan=float(verspan.text)
-        if float(version)!=float(last_ver):
-            msg=messagebox.askyesno(title='Found!',message='An update is avaliable ('+str(last_ver)+'), do you want to download it?')
+        r=requests.get("https://mcrhubarb.net/tileset_editor/")
+        soup=BeautifulSoup(r.content,"html.parser")
+        ver_site=soup.find("div",{"class":"ver"}).get_text()
+        if float(version)!=float(ver_site):
+            msg=messagebox.askyesno(title='Found!',message='An updtae is avaliable ('+str(ver_site)+'), do you want to download it?')
             if msg:
-                webbrowser.open('https://mcrhubarb.net/sofwares/')
+                webbrowser.open('https://github.com/Rhubarb06150/tileset_editor/')
         else:
-            msg=messagebox.showinfo(title='Up to date',message='The software is up to date :)')
-    except Exception as e:
-        print(e)
+            msg=messagebox.showinfo(title='No update found',message='The software seems to be up to date :)')
+    except:
         msg=messagebox.showerror(title='Error',message="Can't check for updates, maybe you aren't connected to network :(")
 
 def place_buttons():
@@ -649,9 +670,9 @@ def place_buttons():
     path_.place(x=(root.winfo_width())-122,y=2)
 
 root=Tk()
-root.geometry('880x480')
+root.geometry('512x480')
 root.title('Tileset Editor ('+str(version)+')')
-root.minsize(880,480)
+root.resizable(False,False)
 
 try:
     root.iconbitmap('icon.ico')
@@ -660,15 +681,11 @@ except:
 title=Label(text='_____________Tilesets / Spritesheets creation _____________')
 title.place(x=2,y=2)
 
-fichier=Label(text='Files: none')
-fichier.place(x=2,y=30)
-
 button = tk.Button(root, text='Upload images', command=upload,borderwidth=1)
 button.place(x=2,y=52)
 
 smb3=IntVar()
 smb3_=tk.Checkbutton(root,text='SMB3 Style',variable=smb3,onvalue=1,offvalue=0,command=aff_size)
-smb3_tip = Hovertip(smb3_,'An symmetry option useful for\nsoftwares like SMBX\n\nexample:\n\nL\nL\nL\n⅃\n⅃\n⅃')
 smb3_.place(x=77,y=80)
 
 liste_sens=['Vertical','Horizontal']
@@ -677,13 +694,13 @@ sens.set('Vertical')
 sens.place(x=2,y=82)
 
 liste_upscale=['x1','x2','x4','x8','x16','x32','x64']
-upscale=ttk.Combobox(values=liste_upscale,width=6,state='readonly')
+upscale=ttk.Combobox(values=liste_upscale,width=3,state='readonly')
 upscale.place(x=140,y=54)
 upscale.set('x1')
 upscale_=Label(text='Upscale:')
 upscale_.place(x=90,y=54)
 avert=Label()
-avert.place(x=200,y=44)
+avert.place(x=194,y=44)
 upscale.bind("<<ComboboxSelected>>", lambda event:verif_size())
 sens.bind("<<ComboboxSelected>>", lambda event:aff_size())
 
@@ -739,17 +756,22 @@ rip_button=Button(text='Rip in separated files',command=lambda:rip('rip'),border
 rip_button.place(x=10,y=450)
 files_rip=Button(text='Upload image',command=upload_rip,borderwidth=1)
 files_rip.place(x=2,y=300)
-files_=Label(text='Files: none')
-files_.place(x=88,y=302)
 
-tile_size_l=['4px','8px','12px','16px','24px','32px','48px','56px','64px']
-tile_size=ttk.Combobox(values=tile_size_l,width=4,state='readonly')
-tile_size_=Label(text='Tile size:')
+tile_size_l=[]
+for i in range(900):
+    tile_size_l.append(str(i+1)+'px')
+x_t=Entry(width=4)
+y_t=Entry(width=4)
+x_t.insert(0,'56')
+y_t.insert(0,'56')
+tile_size_=Label(text='X & Y:')
 tile_size_.place(x=2,y=328)
-tile_size.place(x=55,y=328)
+x_t.place(x=44,y=328)
+y_t.place(x=70,y=328)
 
-tile_offset_l=['0px','1px','2px','3px','4px','5px','6px','7px','8px','9px']
-tile_offset=ttk.Combobox(values=tile_offset_l,width=3,state='readonly')
+tile_offset_l=['0px','1px','2px','3px','4px','5px','6px','7px','8px']
+tile_offset=Entry(width=4)
+tile_offset.insert(0,'1')
 tile_offset_=Label(text='Tile offset:')
 tile_offset_.place(x=2,y=350)
 tile_offset.place(x=65,y=350)
@@ -761,12 +783,14 @@ dim_tile=[]
 for i in range(999):
     dim_tile.append(str(i))
 
-x_tile_offset=ttk.Combobox(values=dim_offset,width=3,state='readonly')
+x_tile_offset=Entry(width=4)
+x_tile_offset.insert(0,'1')
 x_tile_offset_=Label(text='Begin offset x:')
 x_tile_offset_.place(x=110,y=326)
 x_tile_offset.place(x=194,y=326)
 
-y_tile_offset=ttk.Combobox(values=dim_offset,width=3,state='readonly')
+y_tile_offset=Entry(width=4)
+y_tile_offset.insert(0,'18')
 y_tile_offset_=Label(text='Begin offset y:')
 y_tile_offset_.place(x=110,y=350)
 y_tile_offset.place(x=194,y=350)
@@ -778,16 +802,16 @@ tile_name.place(x=70,y=372)
 tile_name_f=Label(text='.png')
 tile_name_f.place(x=134,y=372)
 
-x_tile=ttk.Combobox(values=dim_tile,width=3,state='readonly')
-y_tile=ttk.Combobox(values=dim_tile,width=3,state='readonly')
+x_tile=Entry(width=4)
+x_tile.insert(0,'0')
+y_tile=Entry(width=4)
+y_tile.insert(0,'0')
 x_tile_=Label(text='X:')
 y_tile_=Label(text='Y:')
 x_tile_.place(x=240,y=334)
 y_tile_.place(x=304,y=334)
 x_tile.place(x=256,y=334)
 y_tile.place(x=320,y=334)
-x_tile.set(0)
-y_tile.set(0)
 
 preview_e=IntVar()
 preview=Checkbutton(text='Tile preview',variable=preview_e,onvalue=1,offvalue=0,command=lambda:rip('show_f'))
@@ -796,20 +820,17 @@ preview.place(x=2,y=420)
 preview_=Label(root)
 preview_.place(x=240,y=360)
 
-x_tile_offset.set('0px')
-y_tile_offset.set('0px')
-tile_offset.set('0px')
-tile_size.set('16px')
-
 x_tile_offset.bind("<<ComboboxSelected>>", lambda event:rip('show_f'))
 y_tile_offset.bind("<<ComboboxSelected>>", lambda event:rip('show_f'))
 x_tile.bind("<<ComboboxSelected>>", lambda event:rip('show_f'))
 y_tile.bind("<<ComboboxSelected>>", lambda event:rip('show_f'))
 tile_offset.bind("<<ComboboxSelected>>", lambda event:rip('show_f'))
-tile_size.bind("<<ComboboxSelected>>", lambda event:rip('show_f'))
+x_t.bind("<<ComboboxSelected>>", lambda event:rip('show_f'))
+y_t.bind("<<ComboboxSelected>>", lambda event:rip('show_f'))
 y_tile.bind("<<ComboboxSelected>>", lambda event:rip('show_f'))
+root.bind("<Return>", lambda event:rip('show_f'))
 
-_upscale=ttk.Combobox(values=liste_upscale,width=6,state='readonly')
+_upscale=ttk.Combobox(values=liste_upscale,width=3,state='readonly')
 _upscale.place(x=52,y=394)
 _upscale.set('x1')
 _upscale_=Label(text='Upscale:')
@@ -842,20 +863,6 @@ s_columns_=Label(text='Starting column:')
 s_columns_.place(x=364,y=360)
 s_columns.set('1')
 s_columns.bind("<<ComboboxSelected>>", lambda event:rip('show_f'))
-
-rows_c=ttk.Combobox(values=columns_list,width=3,state='readonly')
-rows_c.place(x=546,y=334)
-rows_c_=Label(text='Rows:')
-rows_c_.place(x=504,y=334)
-rows_c.set('All')
-
-s_rows=ttk.Combobox(values=s_columns_list,width=3,state='readonly')
-s_rows.place(x=580,y=360)
-s_rows_=Label(text='Starting row:')
-s_rows_.place(x=504,y=360)
-s_rows.set('1')
-s_rows.bind("<<ComboboxSelected>>", lambda event:rip('show_f'))
-
 
 bg_remove=Button(text='Background remove',borderwidth=1,command=lambda:eyedropper_win(liste_images_rip[0],colors_to_rm))
 bg_remove.place(x=100,y=420)
